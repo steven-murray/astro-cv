@@ -1,22 +1,23 @@
 SEPARATE_PUBLIST = False
 USE_LINKS = False
+ORCID = "0000-0003-3059-3823"
 
 OMIT_SECTIONS =  ['press_releases']
 
 GOOGLE_SHEET = "Activity Tracker"
 
 # CONTACT AND PERSONAL INFORMATION
-INSTITUTION_URL = r"sese.asu.edu"
-DEPARTMENT_NAME = r"School of Earth and Space Exploration"
-INSTITUTION_NAME= r"Arizona State University"
-INSTITUTION_STREET = r'781 Terrace Mall'
-INSTITUTION_LOCATION = r'Tempe, AZ, 85287'
-INSTITUTION_COUNTRY = r'USA'
+INSTITUTION_URL = r"https://www.sns.it"
+DEPARTMENT_NAME = r"Cosmology Group"
+INSTITUTION_NAME= r"Scuola Normale Superiore"
+INSTITUTION_STREET = r'Piazza Dei Cavalieri 7'
+INSTITUTION_LOCATION = r'Pisa, PI, 56126'
+INSTITUTION_COUNTRY = r'Italy'
 
 FIRSTNAME = "Steven"
 SURNAME = "Murray"
-PHONE_NUMBER = r'+1 (480) 343 9188'
-EMAIL = r'steven.g.murray@asu.edu'
+PHONE_NUMBER = r'+39 (329) 335 7376'
+EMAIL = r'steven.murray@sns.it'
 CITIZENSHIP = [r"Australia"]
 
 
@@ -75,7 +76,7 @@ MAXREF = 3
 
 WEBSITES = [
     {
-        "url": r'https://steven-murray.github.io/',
+        "url": r'https://steven-g-murray.netlify.app/',
         "kind": "web",
         "id": "steven-murray.github.io"
     },
@@ -86,6 +87,15 @@ WEBSITES = [
     {
         "kind": 'github',
         "id": "steven-murray",
+    },
+    {
+        "kind": 'orcid',
+        "id": ORCID,
+    },
+    {
+        "url": "https://www.webofscience.com/wos/author/record/AHB-4234-2022",
+        "kind": "researcherid",
+        "id": "AHB-4234-2022",
     },
 ]
 
@@ -234,14 +244,11 @@ ORIGINAL_CODES = [
 #    'steven-murray/beet-summarize'
 ]
 
-ORCID = "0000-0003-3059-3823"
+LIBRARY = "qfT0ZuGSRCWBI5sG0rl5hw"
 OTHER_BIBCODES = []
-ACCEPTED = [
-    '2021arXiv210912733S', 
-    '2021arXiv210807282T',
-    '2021arXiv210802263T',
-    '2021arXiv210700018P',
-    '2021arXiv210409547A',
+ACCEPTED = []
+STUDENTS = [
+    'Nasirudin', "Giriyan", 
 ]
 HIGHLIGHT_CITE_PER_YEAR = 5
 

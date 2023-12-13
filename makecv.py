@@ -6,9 +6,8 @@ from structure import document
 
 
 def compile_latex(fname):
-    for i in range(2):
-        os.system("pdflatex -synctex=1 -interaction=nonstopmode %s > %s" % (
-        fname, fname.replace("tex", 'log')))
+    for _ in range(2):
+        os.system(f"""pdflatex -synctex=1 -interaction=nonstopmode {fname} > {fname.replace("tex", 'log')}""")
 
 
 if __name__ == "__main__":
@@ -66,7 +65,7 @@ if __name__ == "__main__":
         body += sc.create_presentations(c.WRITE_POSTERS, c.WRITE_LOCAL_TALKS)
 
     if "publications" not in c.OMIT_SECTIONS:
-        publist = sc.create_publications(c.ORCID, c.SURNAME, c.OTHER_BIBCODES + c.ACCEPTED, c.DO_PROCEEDINGS)
+        publist = sc.create_publications(c.LIBRARY, c.SURNAME, c.STUDENTS)
 
         print("    Writing standalone publication list to outputs/publist.pdf")
         # Write out the publication list standalone
@@ -86,17 +85,17 @@ if __name__ == "__main__":
     document = document.replace(r"{%doctype%}", "C.V.")
 
     for kind in ['nopubs', 'full']:
-        if kind == "nopubs":
-            doc = document.replace(r"{%body%}", body)
-        elif kind == "full":
+        if kind == "full":
             doc = document.replace(r"{%body%}", body + publist)
 
-        cvname = "cv_%s.tex" % kind
+        elif kind == "nopubs":
+            doc = document.replace(r"{%body%}", body)
+        cvname = f"cv_{kind}.tex"
 
-        print(
-            "Writing CV with%s publist at outputs/%s" % ("out" if kind == 'nopubs' else "", cvname))
+        print(f"""Writing CV with{"out" if kind == 'nopubs' else ""} publist at outputs/{cvname}""")
+
         # Write out a tex file
-        with open("outputs/" + cvname, 'w') as f:
+        with open(f"outputs/{cvname}", 'w') as f:
             f.write(doc)
 
         # Compile the Document

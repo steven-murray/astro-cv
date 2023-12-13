@@ -1,0 +1,15 @@
+name: cv
+
+dependencies:
+  - pip
+  - python=3.10
+  - pyyaml
+  - pip:
+    - gspread
+    - gql
+    - requests_toolbelt
+    - cache_to_disk
+    - ads @ git+https://github.com/steven-murray/ads
+    - pygithub
+    - oauth2client
+    - questionary
