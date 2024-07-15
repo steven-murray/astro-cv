@@ -114,6 +114,9 @@ def create_contact_information(institution_url, department_name, institution_nam
         elif kind.lower() == "github":
             icon = website.get("icon", r"\faGithub~")
             url = website.get("url", f"https://github.com/{webid}/")
+        elif kind.lower() == "orcid":
+            icon = website.get("icon", r"\faOrcid~")
+            url = website.get("url", f"https://orcid.org/{webid}")
         elif kind.lower() == 'web':
             icon = website.get("icon", r"\faLaptop~")
             url = website.get('url')
@@ -126,6 +129,9 @@ def create_contact_information(institution_url, department_name, institution_nam
 
         wb[kind] = r"\href{%s}{%s\verb|%s|}" % (url, icon, webid or url)
 
+    ncols = max(len(websites), 3)
+    websites=" \\".join(" & ".join(f"<% {k['kind']} %>" for k in ws[:ncols]) for ws in [websites[i:i+ncols] for i in range(0, len(websites), ncols)])
+    
     out = myformat(
         contact_information,
         escape_amp=False,
@@ -137,8 +143,8 @@ def create_contact_information(institution_url, department_name, institution_nam
         institution_country=institution_country,
         phone_number=phone_number,
         email=email,
-        ncols="Y" * len(websites),
-        websites=" & ".join(f"<% {k['kind']} %>" for k in websites),
+        ncols="Y" * ncols,
+        websites=websites,
     )
 
 
@@ -156,10 +162,10 @@ def create_academic_references(references, maxref=None):
     if maxref is None:
         maxref = len(references)
 
-    out = r"\begin{tabular}{ l l l }" + "\n"
+    out = r"\begin{tabular}{ l r }" + "\n"
     out += " \\\\ \n".join(
         myformat(
-            r"\textbf{<% name %>} & \href{mailto:<% email %>}{<% email %>} & <% phone %>",
+            r"\textbf{<% name %>} & \href{mailto:<% email %>}{<% email %>}",
             **entry
         )
         for entry in references[:maxref]
@@ -333,7 +339,8 @@ def create_academic_experience(omit_grants, omit_collaborations, omit_committees
     if not omit_grants:
         out += create_subcategory(
             "Grants",
-            r"\item <% Authors %>, <% Year %>, `\textit{<% Title %>}', <% Grant %>."
+            r"\item <% Authors %>\hfill<% Year %>\\ \textit{<% Title %>}, <% Grant %>\hfill<% award_amount %>",
+            award_amount=lambda x: r"\textbf{\$%s}"%x['Amount'] if x['Amount'] else "" 
         )
 
     if not omit_collaborations:
@@ -371,7 +378,7 @@ def create_academic_experience(omit_grants, omit_collaborations, omit_committees
     if not omit_teaching:
         out += create_subcategory(
             "Teaching",
-            r"\item <% Level %> <% Name %>: \textit{<% Role %>} (<% University %>, <% StartDate "
+            r"\item <% Level %> `<% Name %>': \textit{<% Role %>} (<% University %>, <% StartDate "
             r"%>~--~<% EndDate %>)")
 
     if not omit_outreach:
@@ -642,7 +649,7 @@ def create_software(max_repos, blacklist):
     Here I list notable codes that I originally authored and maintain. Much of my 
     current development work occurs in collaborative software, which is listed below.
     
-    \textbf{Key}: \faStarO\ GH Stars | \faCodeFork\ Forks
+    \textbf{Key}: \faStar\ GH Stars | \faCodeBranch\ Forks
     """
 
     out += r"""
@@ -650,7 +657,7 @@ def create_software(max_repos, blacklist):
         \small
             \begin{tabularx}{\textwidth}{l Z c c} 
             \hline
-            \textbf{Repo} & \textbf{Description} &  \faStarO\ & \faCodeFork\ \\
+            \textbf{Repo} & \textbf{Description} &  \faStar\ & \faCodeBranch\ \\
             \hline
     """
 
@@ -680,7 +687,7 @@ def create_software(max_repos, blacklist):
     Here I list notable codes that I contribute to collaboratively. They are listed in
     descending order of my total number of contributions.
     
-    \textbf{Key}:  \faStarO\ GH Stars | \faCodeFork\ Forks | \faList\ My Rank as Contributor | \faPlusCircle\ My Contributions
+    \textbf{Key}:  \faStar\ GH Stars | \faCodeBranch\ Forks | \faList\ My Rank as Contributor | \faPlusCircle\ My Contributions
     """
 
     out += r"""
@@ -688,7 +695,7 @@ def create_software(max_repos, blacklist):
         \small
             \begin{tabularx}{\textwidth}{l Z c c c c} 
             \hline
-            \textbf{Repo} & \textbf{Description} &  \faStarO\ & \faCodeFork\ & \faPlusCircle\ & \faList\ \\
+            \textbf{Repo} & \textbf{Description} &  \faStar\ & \faCodeBranch\ & \faPlusCircle\ & \faList\ \\
             \hline
     """
 
@@ -852,7 +859,7 @@ def create_publications(library, surname, students):
         "The Journal of Open Source Software": "JOSS",
     }
 
-    out += r"Key: \faFileTextO\ Papers, \faPencilSquareO\ Citations, \faEye\ Reads (on NASA ADS)"
+    out += r"Key: \faFile*~\ Papers, \faPen\ Citations, \faEye\ Reads (on NASA ADS)"
     out += BLANK
 
     def write_paper(paper):
@@ -874,9 +881,9 @@ def create_publications(library, surname, students):
 
 
         if paper.citation_count / max(now.year - int(paper.year) , 1) >= c.HIGHLIGHT_CITE_PER_YEAR:
-            rest = r"{\color{Orange} \faPencilSquareO~<% citation_count %>~~\faEye~<% read_count %>}"
+            rest = r"{\color{Orange} \faPen~<% citation_count %>~~\faEye~<% read_count %>}"
         else:   
-            rest = r"\faPencilSquareO~<% citation_count %>~~\faEye~<% read_count %>"
+            rest = r"\faPen~<% citation_count %>~~\faEye~<% read_count %>"
 
         rest = myformat(rest, citation_count=f'{paper.citation_count:>3}', read_count=f'{paper.read_count:>3}',)
         return out + rest
@@ -893,7 +900,7 @@ def create_publications(library, surname, students):
 
             out += myformat(
                 r"""
-                \textbf{<% label %>} \hfill \faFileTextO~<% npapers %>\ \ \faPencilSquareO~<% cites %>\ \ \faEye~<% reads %>
+                \textbf{<% label %>} \hfill \faFile*~<% npapers %>\ \ \faPen~<% cites %>\ \ \faEye~<% reads %>
                 \hline
                 """,
                 label=label, cites=cite_count, reads=read_count, npapers=len(these)

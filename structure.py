@@ -29,7 +29,7 @@ document_setup = r"""
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Use some cool icons
-\usepackage{fontawesome}
+\usepackage{fontawesome5}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{float}
 

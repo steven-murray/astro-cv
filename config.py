@@ -2,7 +2,7 @@ SEPARATE_PUBLIST = False
 USE_LINKS = False
 ORCID = "0000-0003-3059-3823"
 
-OMIT_SECTIONS =  ['press_releases']
+OMIT_SECTIONS =  ["press_releases"]
 
 GOOGLE_SHEET = "Activity Tracker"
 
@@ -29,16 +29,22 @@ REFERENCES = [
         "phone": "(+1)480 965-8880"
     },
     {
-        "name": "Dr. Cathryn Trott",
-        "email": "cathryn.trott@curtin.edu.au",
-        "address": "ICRAR, Curtin University, 1 Turner Ave., Bentley, WA, 6102, Australia.",
-        "phone": "(+61)8 9266 1306"
+        "name": "Prof. Adrian Liu",
+        "email": "adrian.liu2@mcgill.ca",
+        "address": "McGill University, 3600 Rue University, Montreal, QC H3A 2T8, Canada",
+        "phone": ""
     },
     {
         "name": "Prof. Andrei Mesinger",
         "email": "andrei.mesinger@sns.it",
         "address": "Scuola Normale Superior, Piazza dei Cavalieri 7, Pisa, Italy",
         "phone": "(+39) 050 509 688"
+    },
+    {
+        "name": "Dr. Cathryn Trott",
+        "email": "cathryn.trott@curtin.edu.au",
+        "address": "ICRAR, Curtin University, 1 Turner Ave., Bentley, WA, 6102, Australia.",
+        "phone": "(+61)8 9266 1306"
     },
     {
         "name": "Dr. Danny Jacobs",
@@ -71,19 +77,19 @@ REFERENCES = [
 ]
 
 # Maximum number of referrees to add to CV.
-MAXREF = 3
+MAXREF = 4
 
 
 WEBSITES = [
     {
         "url": r'https://steven-g-murray.netlify.app/',
         "kind": "web",
-        "id": "steven-murray.github.io"
+        "id": "steven-g-murray.netlify.app",
     },
-    {
-        "kind": 'linkedin',
-        "id": 'steven-g-murray',
-    },
+    # {
+    #     "kind": 'linkedin',
+    #     "id": 'steven-g-murray',
+    # },
     {
         "kind": 'github',
         "id": "steven-murray",
@@ -91,12 +97,13 @@ WEBSITES = [
     {
         "kind": 'orcid',
         "id": ORCID,
+        "url": f"https://orcid.org/0000-0003-3059-3823"
     },
-    {
-        "url": "https://www.webofscience.com/wos/author/record/AHB-4234-2022",
-        "kind": "researcherid",
-        "id": "AHB-4234-2022",
-    },
+    # {
+    #     "url": "https://www.webofscience.com/wos/author/record/AHB-4234-2022",
+    #     "kind": "researcherid",
+    #     "id": "AHB-4234-2022",
+    # },
 ]
 
 
@@ -146,11 +153,18 @@ KEEP_UNDERGRAD_COURSES = False
 JOB_MIN_RATING = 3
 JOB_MIN_DATE = 2009
 JOBS = [
+    {"organisation": "Scuola Normale Superiore",
+     "city": "Pisa",
+     "state": "Italy",
+     "title": "MSCA (Marie Curie) Fellow",
+     "dates": (2023, None),
+     "rating": 4},
+
     {"organisation": "Arizona State University",
      "city": "Tempe",
      "state": "Arizona",
      "title": "HERA/EDGES Postdoc",
-     "dates": (2018, None),
+     "dates": (2018, 2023),
      "rating": 4},
 
 
@@ -248,14 +262,14 @@ LIBRARY = "qfT0ZuGSRCWBI5sG0rl5hw"
 OTHER_BIBCODES = []
 ACCEPTED = []
 STUDENTS = [
-    'Nasirudin', "Giriyan", 
+    'Nasirudin', "Giriyan", "Cox", "Carl", "Whitler", 
 ]
 HIGHLIGHT_CITE_PER_YEAR = 5
 
 WRITE_POSTERS = False
 WRITE_LOCAL_TALKS = False
 
-DO_PROCEEDINGS = True
+DO_PROCEEDINGS = False
 
 # Settings for determining which papers you are a "significant" contributor to
 TOP_N = 4         # If you are in the TOP_N, you are always considered significant
