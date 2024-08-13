@@ -340,7 +340,7 @@ def create_academic_experience(omit_grants, omit_collaborations, omit_committees
         out += create_subcategory(
             "Grants",
             r"\item <% Authors %>\hfill<% Year %>\\ \textit{<% Title %>}, <% Grant %>\hfill<% award_amount %>",
-            award_amount=lambda x: r"\textbf{\$%s}"%x['Amount'] if x['Amount'] else "" 
+            award_amount=lambda x: (r"\textbf{%s}"%x['Amount']).replace("$","\$") if x['Amount'] else "" 
         )
 
     if not omit_collaborations:
