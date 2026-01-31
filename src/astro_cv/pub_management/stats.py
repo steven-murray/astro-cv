@@ -1,11 +1,11 @@
-from .datatypes import Publication, PubList
+from .datatypes import PubList
 from datetime import datetime
+
 
 def compute_h_index(pub_list: PubList) -> int:
     """Compute the h-index for a given PubList."""
     citation_counts = sorted(
-        (p.citation_count for p in pub_list.publications), 
-        reverse=True
+        (p.citation_count for p in pub_list.publications), reverse=True
     )
     h_index = 0
     for i, count in enumerate(citation_counts, start=1):
@@ -21,7 +21,10 @@ def compute_i10_index(pub_list: PubList) -> int:
     i10_index = sum(1 for p in pub_list.publications if p.citation_count >= 10)
     return i10_index
 
-def citation_distribution(pub_list: PubList, bins: list[int] | None = None) -> dict[str, int]:
+
+def citation_distribution(
+    pub_list: PubList, bins: list[int] | None = None
+) -> dict[str, int]:
     """Compute the citation distribution for a given PubList."""
     if bins is None:
         bins = [0, 1, 5, 10, 20, 50, 100, 200, 500, 1000]
@@ -40,6 +43,7 @@ def citation_distribution(pub_list: PubList, bins: list[int] | None = None) -> d
             citation_distribution[f">{bins[-1]}"] += 1
     return citation_distribution
 
+
 def average_citations(pub_list: PubList) -> float:
     """Compute the average number of citations per paper in a given PubList."""
     total_citations = sum(p.citation_count for p in pub_list.publications)
@@ -47,6 +51,7 @@ def average_citations(pub_list: PubList) -> float:
     if num_papers == 0:
         return 0.0
     return total_citations / num_papers
+
 
 def median_citations(pub_list: PubList) -> float:
     """Compute the median number of citations per paper in a given PubList."""
@@ -59,28 +64,24 @@ def median_citations(pub_list: PubList) -> float:
         return (citation_counts[mid - 1] + citation_counts[mid]) / 2
     else:
         return float(citation_counts[mid])
-    
+
+
 def total_citations(pub_list: PubList) -> int:
     """Compute the total number of citations in a given PubList."""
     return sum(p.citation_count for p in pub_list)
 
+
 def top_cited_papers(
-    pub_list: PubList, 
+    pub_list: PubList,
     n: int = 5,
     per_year: bool = False,
 ) -> PubList:
     """Get the top n cited papers from a given PubList."""
-    if per_year:
-        key = lambda p: p.citations_per_year
-    else:
-        key = lambda p: p.citation_count
+    def key(p): return p.citations_per_year if per_year else p.citation_count
 
-    sorted_pubs = sorted(
-        pub_list.publications, 
-        key=key, 
-        reverse=True
-    )
+    sorted_pubs = sorted(pub_list.publications, key=key, reverse=True)
     return PubList(publications=tuple(sorted_pubs[:n]))
+
 
 def average_citations_per_year(pub_list: PubList) -> float:
     """Compute the average citations per year for a given PubList."""

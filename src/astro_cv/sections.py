@@ -1,7 +1,6 @@
 import contextlib
 import datetime
 from operator import itemgetter
-from collections import defaultdict
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from cache_to_disk import cache_to_disk
@@ -10,40 +9,43 @@ import ads
 from github import Github
 
 import config as c
+import gspread
 
 now = datetime.datetime.now()
 
-import gspread
 
 # Authorize access to the Google Sheet.
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive",
+]
 
 try:
-    #credentials = ServiceAccountCredentials.from_json_keyfile_name("authorization_key.json", scope)
-    gc = gspread.service_account(filename='authorization_key.json') 
-    #gspread.authorize(credentials)
+    # credentials = ServiceAccountCredentials.from_json_keyfile_name("authorization_key.json", scope)
+    gc = gspread.service_account(filename="authorization_key.json")
+    # gspread.authorize(credentials)
 
     print("Opening Activity Information from Google Sheets...")
     data = gc.open(c.GOOGLE_SHEET)
 except Exception as e:
     print(e)
     HAVE_GOOGLE = False
-    
+
 BLANK = "\n\n" + r"\blankline" + "\n\n"
 HLINE = "\n\n" + r"\hline" + "\n\n"
+
 
 def section(func):
     section_title = func.__name__.replace("create_", "").replace("_", " ").title()
 
     def wrapper(*args, **kwargs):
         out = r"\section{%s}%%" % section_title
-        out += '\n\t'
+        out += "\n\t"
         print(f"Writing {section_title}...")
         _out = func(*args, **kwargs)
         _out = "\n\t".join(_out.split("\n"))
         out += _out
-        out += '\n\n'
+        out += "\n\n"
         return out
 
     return wrapper
@@ -62,9 +64,9 @@ def custom_format(string, brackets, *args, **kwargs):
     Copied from https://stackoverflow.com/a/40877821/1467820.
     """
     if len(brackets) != 2:
-        raise ValueError(f'Expected two brackets. Got {len(brackets)}.')
-    padded = string.replace('{', '{{').replace('}', '}}')
-    substituted = padded.replace(brackets[0], '{').replace(brackets[1], '}')
+        raise ValueError(f"Expected two brackets. Got {len(brackets)}.")
+    padded = string.replace("{", "{{").replace("}", "}}")
+    substituted = padded.replace(brackets[0], "{").replace(brackets[1], "}")
     return substituted.format(*args, **kwargs)
 
 
@@ -76,14 +78,22 @@ def myformat(string, *args, escape_amp=True, **kwargs):
                 args[i] = args[i].replace("&", r"\&")
         for k in kwargs:
             with contextlib.suppress(AttributeError):
-                kwargs[k] = kwargs[k].replace("&", r'\&')
+                kwargs[k] = kwargs[k].replace("&", r"\&")
     return custom_format(string, ["<% ", " %>"], *args, **kwargs)
 
 
 @section
-def create_contact_information(institution_url, department_name, institution_name,
-                               institution_street, institution_location, institution_country,
-                               phone_number, email, websites):
+def create_contact_information(
+    institution_url,
+    department_name,
+    institution_name,
+    institution_street,
+    institution_location,
+    institution_country,
+    phone_number,
+    email,
+    websites,
+):
     contact_information = r"""%
     \newlength{\rcollength}\setlength{\rcollength}{3.5in}%
     %
@@ -117,11 +127,11 @@ def create_contact_information(institution_url, department_name, institution_nam
         elif kind.lower() == "orcid":
             icon = website.get("icon", r"\faOrcid~")
             url = website.get("url", f"https://orcid.org/{webid}")
-        elif kind.lower() == 'web':
+        elif kind.lower() == "web":
             icon = website.get("icon", r"\faLaptop~")
-            url = website.get('url')
+            url = website.get("url")
         elif kind:
-            icon = website.get("icon", r"\faLaptop~%s: "%kind)
+            icon = website.get("icon", r"\faLaptop~%s: " % kind)
             url = website.get("url")
         else:
             icon = website.get("icon", r"\faLaptop~: ")
@@ -130,8 +140,11 @@ def create_contact_information(institution_url, department_name, institution_nam
         wb[kind] = r"\href{%s}{%s\verb|%s|}" % (url, icon, webid or url)
 
     ncols = max(len(websites), 3)
-    websites=" \\".join(" & ".join(f"<% {k['kind']} %>" for k in ws[:ncols]) for ws in [websites[i:i+ncols] for i in range(0, len(websites), ncols)])
-    
+    websites = " \\".join(
+        " & ".join(f"<% {k['kind']} %>" for k in ws[:ncols])
+        for ws in [websites[i : i + ncols] for i in range(0, len(websites), ncols)]
+    )
+
     out = myformat(
         contact_information,
         escape_amp=False,
@@ -147,13 +160,10 @@ def create_contact_information(institution_url, department_name, institution_nam
         websites=websites,
     )
 
-
-    out = myformat(
-        out,
-        **wb
-    )
+    out = myformat(out, **wb)
 
     return out
+
 
 @section
 def create_academic_references(references, maxref=None):
@@ -165,29 +175,34 @@ def create_academic_references(references, maxref=None):
     out = r"\begin{tabular}{ l r }" + "\n"
     out += " \\\\ \n".join(
         myformat(
-            r"\textbf{<% name %>} & \href{mailto:<% email %>}{<% email %>}",
-            **entry
+            r"\textbf{<% name %>} & \href{mailto:<% email %>}{<% email %>}", **entry
         )
         for entry in references[:maxref]
     )
 
-    out += '\n'
+    out += "\n"
     out += r"\end{tabular}"
     return out
 
 
 @section
 def create_research_interests(interests):
-    out = ''
+    out = ""
 
     for interest, sub_interests in interests.items():
-        out += myformat(r"\textbf{<% interest %>}: <% sub %>.", interest=interest, sub = ", ".join(sub_interests))
+        out += myformat(
+            r"\textbf{<% interest %>}: <% sub %>.",
+            interest=interest,
+            sub=", ".join(sub_interests),
+        )
         out += "\n\n"
     return out
 
 
 @section
-def create_education(keep_undergrad=True, keep_secondary=False, keep_undergrad_courses=False):
+def create_education(
+    keep_undergrad=True, keep_secondary=False, keep_undergrad_courses=False
+):
     out = r"""%
 \href{http://www.uwa.edu.au}{\textbf{University of Western Australia}}, 
 Perth, Western Australia
@@ -247,11 +262,14 @@ Brisbane, Queensland, Australia
 
 \blankline
 """
-        courses = '\n' + r"\item Third-Year and Higher Courses Taken: Set Theory and Logic (D), " \
-                         r"Bifurcation and Chaos (HD), Optimization Theory (HD), Complex Analysis " \
-                         r"" \
-                         r"(HD), Algebraic Methods of Methematical Physics (HD), Quantum Physics " \
-                         r"(D), Astrophysics and Cosmology (HD), Statistical Mechanics (D)."
+        courses = (
+            "\n"
+            + r"\item Third-Year and Higher Courses Taken: Set Theory and Logic (D), "
+            r"Bifurcation and Chaos (HD), Optimization Theory (HD), Complex Analysis "
+            r""
+            r"(HD), Algebraic Methods of Methematical Physics (HD), Quantum Physics "
+            r"(D), Astrophysics and Cosmology (HD), Statistical Mechanics (D)."
+        )
         out = myformat(out, courses=courses if keep_undergrad_courses else "")
     if keep_secondary:
         out += r"""
@@ -276,10 +294,10 @@ def create_professional_experience(jobs, min_rating, min_date):
     out = ""
 
     for job in jobs:
-        if job['rating'] < min_rating:
+        if job["rating"] < min_rating:
             continue
 
-        if job['dates'][-1] is not None and job['dates'][-1] < min_date:
+        if job["dates"][-1] is not None and job["dates"][-1] < min_date:
             continue
 
         preformat = r"""%
@@ -290,45 +308,60 @@ def create_professional_experience(jobs, min_rating, min_date):
         \blankline
         
         """
-        if len(job['dates']) == 2:
-            dates_ = f"""{job['dates'][0]} -- {job['dates'][1] or ""}"""
+        if len(job["dates"]) == 2:
+            dates_ = f"""{job["dates"][0]} -- {job["dates"][1] or ""}"""
         else:
-            dates_ = str(job['dates'][0])
+            dates_ = str(job["dates"][0])
         out += myformat(preformat, dates_=dates_, **job)
 
     return out
 
+
 @section
-def create_academic_experience(omit_grants, omit_collaborations, omit_committees, omit_referees,
-                               omit_lecturing,
-                               omit_supervision, omit_teaching, omit_outreach, omit_prof_training,
-                               omit_personal_training, omit_industry):
+def create_academic_experience(
+    omit_grants,
+    omit_collaborations,
+    omit_committees,
+    omit_referees,
+    omit_lecturing,
+    omit_supervision,
+    omit_teaching,
+    omit_outreach,
+    omit_prof_training,
+    omit_personal_training,
+    omit_industry,
+):
     def create_subcategory(cat, fmt_string, label=None, **extra_format_kwargs):
         X = lol_to_lod(data.worksheet(cat).get_all_values())
 
         if len(X) > 0:
             # Get the type of date defining this subcategory
-            for date_id in ['Date', 'StartDate', "Year"]:
+            for date_id in ["Date", "StartDate", "Year"]:
                 if date_id in X[0]:
                     break
 
-            out = myformat(r"\textbf{<% cat %>} \hfill \textbf{<% date %> -- Present}", cat=label or cat, date=min(x[date_id].split("/")[-1] for x in X))
+            out = myformat(
+                r"\textbf{<% cat %>} \hfill \textbf{<% date %> -- Present}",
+                cat=label or cat,
+                date=min(x[date_id].split("/")[-1] for x in X),
+            )
 
-            out += '\n'
+            out += "\n"
             out += r"\begin{innerlist}"
-            out += '\n'
-            for x in sorted(X, key=lambda x: int(x[date_id].split("/")[-1]), reverse=True):
-
+            out += "\n"
+            for x in sorted(
+                X, key=lambda x: int(x[date_id].split("/")[-1]), reverse=True
+            ):
                 for k, fnc in extra_format_kwargs.items():
                     x[k] = fnc(x)
 
                 out += myformat(fmt_string, **x)
-                out += '\n\n'
+                out += "\n\n"
 
             out += r"\end{innerlist}"
-            out += '\n\n'
+            out += "\n\n"
             out += r"\blankline"
-            out += '\n\n'
+            out += "\n\n"
 
             return out
         else:
@@ -340,54 +373,68 @@ def create_academic_experience(omit_grants, omit_collaborations, omit_committees
         out += create_subcategory(
             "Grants",
             r"\item <% Authors %>\hfill<% Year %>\\ \textit{<% Title %>}, <% Grant %>\hfill<% award_amount %>",
-            award_amount=lambda x: (r"\textbf{%s}"%x['Amount']).replace("$","\$") if x['Amount'] else "" 
+            award_amount=lambda x: (r"\textbf{%s}" % x["Amount"]).replace("$", "\$")
+            if x["Amount"]
+            else "",
         )
 
     if not omit_collaborations:
         out += create_subcategory(
             "Collaborations",
-            r"\item <% Group %> [CI <% CI %>], (<% StartDate %>~--~<% EndDate %>)")
+            r"\item <% Group %> [CI <% CI %>], (<% StartDate %>~--~<% EndDate %>)",
+        )
 
     if not omit_committees:
         out += create_subcategory(
             "Memberships and Committees",
             r"\item <% Committee %> [<% Role %>], (<% start %>~--~<% end %>)",
-            start=lambda x: x['StartDate'].split("/")[-1],
-            end=lambda x: x['EndDate'].split("/")[-1])
+            start=lambda x: x["StartDate"].split("/")[-1],
+            end=lambda x: x["EndDate"].split("/")[-1],
+        )
 
     if not omit_referees:
         out += create_subcategory(
             "Journal Referee",
-            r"\item Referee for <% Journal %> (<% StartDate %>~--~<% EndDate %>)")
+            r"\item Referee for <% Journal %> (<% StartDate %>~--~<% EndDate %>)",
+        )
 
     if not omit_lecturing:
         out += create_subcategory(
             "Lecturing",
             r"\item <% Number %> Lecture<% course %> <% Title %> (<% StartDate %>~--~<% EndDate "
             r"%>, <% University %>)",
-            course=lambda x: ":" if x["Number"] == 1 else "Course:")
+            course=lambda x: ":" if x["Number"] == 1 else "Course:",
+        )
 
     if not omit_supervision:
         out += create_subcategory(
             "Supervision",
             r"\item <% cosup %> <% Level %> <% student %>: <% Name %> (<% StartDate %>~--~<% "
             r"EndDate %>)",
-            cosup=lambda x: "Co-supervised" if x['Co-Supervised'] == "Yes" else "Supervised",
-            student=lambda x: "student" if x['Level'] in ['PhD', "Masters", "Honours"] else "")
+            cosup=lambda x: "Co-supervised"
+            if x["Co-Supervised"] == "Yes"
+            else "Supervised",
+            student=lambda x: "student"
+            if x["Level"] in ["PhD", "Masters", "Honours"]
+            else "",
+        )
 
     if not omit_teaching:
         out += create_subcategory(
             "Teaching",
             r"\item <% Level %> `<% Name %>': \textit{<% Role %>} (<% University %>, <% StartDate "
-            r"%>~--~<% EndDate %>)")
+            r"%>~--~<% EndDate %>)",
+        )
 
     if not omit_outreach:
         out += create_subcategory(
             "Outreach",
             r"\item <% activity %> (<% Location %>, <% date %>)",
-            activity=lambda x: myformat(r"\href{<% URL %>}{<% Activity %>}", **x) if x['URL'] else
-            x['Activity'],
-            date=lambda x: x['Date'].split("/")[-1])
+            activity=lambda x: myformat(r"\href{<% URL %>}{<% Activity %>}", **x)
+            if x["URL"]
+            else x["Activity"],
+            date=lambda x: x["Date"].split("/")[-1],
+        )
 
     if not omit_industry:
         out += create_subcategory(
@@ -400,13 +447,19 @@ def create_academic_experience(omit_grants, omit_collaborations, omit_committees
         out += create_subcategory(
             "Professional Training",
             r"\item <% Name %> (<% date %>)",
-            date=lambda x: datetime.datetime.strptime(x['StartDate'], "%d/%m/%Y").strftime("%b %Y"))
+            date=lambda x: datetime.datetime.strptime(
+                x["StartDate"], "%d/%m/%Y"
+            ).strftime("%b %Y"),
+        )
 
     if not omit_personal_training:
         out += create_subcategory(
             "Personal Training",
             r"\item <% Name %> (<% date %>)",
-            date=lambda x: datetime.datetime.strptime(x['Date'], "%d/%m/%Y").strftime("%b %Y"))
+            date=lambda x: datetime.datetime.strptime(x["Date"], "%d/%m/%Y").strftime(
+                "%b %Y"
+            ),
+        )
 
     return out
 
@@ -416,38 +469,40 @@ def create_awards_and_scholarships(min_year, min_rating):
     awards = lol_to_lod(data.worksheet("Awards").get_all_values())
 
     if min_year:
-        awards = [a for a in awards if int(a['DateReceived']) >= min_year]
+        awards = [a for a in awards if int(a["DateReceived"]) >= min_year]
 
     if min_rating:
-        awards = [a for a in awards if int(a['Rating']) >= min_rating]
+        awards = [a for a in awards if int(a["Rating"]) >= min_rating]
 
     # Try to segregate awards by institution.
     seg_awards = {}
     for a in awards:
-        if a['Institution'] in seg_awards:
-            seg_awards[a['Institution']].append(a)
+        if a["Institution"] in seg_awards:
+            seg_awards[a["Institution"]].append(a)
         else:
-            seg_awards[a['Institution']] = [a]
+            seg_awards[a["Institution"]] = [a]
 
-    seg_year = {
-        k: max(a['DateReceived'] for a in v) for k, v in seg_awards.items()
-    }
+    seg_year = {k: max(a["DateReceived"] for a in v) for k, v in seg_awards.items()}
 
     sorted_segyear = sorted(seg_year.items(), key=itemgetter(1), reverse=True)
 
     out = ""
     for inst, year in sorted_segyear:
         out += myformat(r"\textbf{<% inst %>}", inst=inst)
-        out += '\n\n'
+        out += "\n\n"
         out += r"\begin{innerlist}"
         for award in seg_awards[inst]:
-            out += myformat(r"\item <% Name %> (<% DateReceived %><% duration %>)", duration=f", for {award['Duration']}" if award['Duration'] else "", **award)
+            out += myformat(
+                r"\item <% Name %> (<% DateReceived %><% duration %>)",
+                duration=f", for {award['Duration']}" if award["Duration"] else "",
+                **award,
+            )
 
-            out += '\n'
+            out += "\n"
         out += r"\end{innerlist}"
-        out += '\n\n'
-        out += r'\blankline'
-        out += '\n\n'
+        out += "\n\n"
+        out += r"\blankline"
+        out += "\n\n"
     return out
 
 
@@ -457,59 +512,61 @@ def create_technical_skills():
     out = ""
 
     def colonlist_to_sentence(str):
-        return " and".join(str.replace(";", ',').rsplit(',', 1))
+        return " and".join(str.replace(";", ",").rsplit(",", 1))
 
-    if technical['OSProficient']:
+    if technical["OSProficient"]:
         out += "Proficiency with %s operating systems." % colonlist_to_sentence(
-            technical['OSProficient'])
-        out += '\n'
-        if not technical['OSUsed']:
-            out += '\n\n'
-            out += r'\blankline'
-            out += '\n\n'
+            technical["OSProficient"]
+        )
+        out += "\n"
+        if not technical["OSUsed"]:
+            out += "\n\n"
+            out += r"\blankline"
+            out += "\n\n"
 
-    if technical['OSUsed']:
-        oses = colonlist_to_sentence(technical['OSUsed'])
+    if technical["OSUsed"]:
+        oses = colonlist_to_sentence(technical["OSUsed"])
         out += f"Working knowledge of {oses} operating systems"
 
-        out += '\n\n'
-        out += r'\blankline'
-        out += '\n\n'
+        out += "\n\n"
+        out += r"\blankline"
+        out += "\n\n"
 
-    if technical['LanguageProficient']:
-        lanugages = colonlist_to_sentence(technical['LanguageProficient'])
+    if technical["LanguageProficient"]:
+        lanugages = colonlist_to_sentence(technical["LanguageProficient"])
         out += f"Intimate knowledge of a variety of programming languages, in particular {lanugages}"
-
 
         if technical["LanguageUsed"]:
             out += f", and to varying extents {colonlist_to_sentence(technical['LanguageUsed'])}."
 
-            out += '\n\n'
-            out += r'\blankline'
-            out += '\n\n'
+            out += "\n\n"
+            out += r"\blankline"
+            out += "\n\n"
         else:
             out += "."
 
-    elif technical['LanguageUsed']:
+    elif technical["LanguageUsed"]:
         out += "Basic knowledge of %s programming languages." % colonlist_to_sentence(
-            technical['LanguageUsed'])
-        out += '\n\n'
-        out += r'\blankline'
-        out += '\n\n'
+            technical["LanguageUsed"]
+        )
+        out += "\n\n"
+        out += r"\blankline"
+        out += "\n\n"
 
-    if technical['SoftwareProficient']:
+    if technical["SoftwareProficient"]:
         out += f"In-depth experience with {colonlist_to_sentence(technical['SoftwareProficient'])} programs and frameworks"
-
 
         if technical["SoftwareUsed"]:
             out += f", and to varying extents {colonlist_to_sentence(technical['SoftwareUsed'])}."
 
         else:
             out += "."
-    elif technical['SoftwareUsed']:
+    elif technical["SoftwareUsed"]:
         out += "Experience with %s programs and frameworks." % colonlist_to_sentence(
-            technical['SoftwareUsed'])
+            technical["SoftwareUsed"]
+        )
     return out
+
 
 @section
 def create_software(max_repos, blacklist):
@@ -517,7 +574,10 @@ def create_software(max_repos, blacklist):
     print("    Collecting Software from Github...")
     gh = Github(c.GITHUB_PWD)
 
-    transport = RequestsHTTPTransport(url='https://api.github.com/graphql', headers={'Authorization': f"token {c.GITHUB_PWD}"})
+    transport = RequestsHTTPTransport(
+        url="https://api.github.com/graphql",
+        headers={"Authorization": f"token {c.GITHUB_PWD}"},
+    )
 
     client = Client(transport=transport)
 
@@ -538,11 +598,12 @@ def create_software(max_repos, blacklist):
         )
         one_year_ago = now - datetime.timedelta(days=365)
 
-        out = client.execute(query, variable_values={'org_id': org_id, "from": f'{one_year_ago.isoformat()}Z'})
+        out = client.execute(
+            query,
+            variable_values={"org_id": org_id, "from": f"{one_year_ago.isoformat()}Z"},
+        )
 
-
-
-        return out['viewer']['contributionsCollection']
+        return out["viewer"]["contributionsCollection"]
 
     def get_orgs():
         query = gql(
@@ -563,13 +624,13 @@ def create_software(max_repos, blacklist):
 
         this = client.execute(query)
         return {
-            node['login']: (node['id'], node['description'])
-            for node in this['viewer']['organizations']['nodes'] if node['login'] not in c.BLACKLIST_ORGS
+            node["login"]: (node["id"], node["description"])
+            for node in this["viewer"]["organizations"]["nodes"]
+            if node["login"] not in c.BLACKLIST_ORGS
         }
 
     def get_repos(gh):
         return [gh.get_repo(name) for name in c.ORIGINAL_CODES]
-
 
     my_orgs = get_orgs()
     my_contributions = {}
@@ -583,8 +644,10 @@ def create_software(max_repos, blacklist):
     print(f"    Collected {len(my_orgs)} orgs.")
 
     org_totes = [(name, sum(o.values())) for name, o in my_contributions.items()]
-    org_totes = [(name, tote) for name, tote in org_totes if tote >= c.MIN_CONTRIBUTIONS]
-    org_totes = sorted(org_totes, key = lambda x: x[1], reverse=True)
+    org_totes = [
+        (name, tote) for name, tote in org_totes if tote >= c.MIN_CONTRIBUTIONS
+    ]
+    org_totes = sorted(org_totes, key=lambda x: x[1], reverse=True)
 
     repos = get_repos(gh)
 
@@ -594,20 +657,20 @@ def create_software(max_repos, blacklist):
         rank = 0
         total_contributions = 0
         for i, user in enumerate(repo.get_contributors()):
-            if user.login== c.GITHUB_USER:
+            if user.login == c.GITHUB_USER:
                 rank = i + 1
                 contrib = user.contributions
-            total_contributions +=user.contributions
+            total_contributions += user.contributions
 
         return rank, contrib, total_contributions
 
     repos = sorted(repos, key=lambda r: r.stargazers_count, reverse=True)
-    contributions = [get_contributions(repo) for repo in repos]
-
-
-    out = ''
-    out += r"Complete information at \href{https://github.com/%s?tab=repositories}{github.com/%s}. " % (
-        c.GITHUB_USER, c.GITHUB_USER)
+    
+    out = ""
+    out += (
+        r"Complete information at \href{https://github.com/%s?tab=repositories}{github.com/%s}. "
+        % (c.GITHUB_USER, c.GITHUB_USER)
+    )
 
     out += BLANK
 
@@ -633,7 +696,10 @@ def create_software(max_repos, blacklist):
     for org, tote in org_totes:
         out += myformat(
             r"\href{https://github.com/<% org %>}{<% org %>} & <% descr %> & \texttt{<% tote %> [<% totalCommitContributions:03d %>|<% totalIssueContributions:02d %>|<% totalPullRequestContributions:02d %>|<% totalPullRequestReviewContributions:02d %>]} \\",
-            org = org, tote=tote, descr=my_orgs[org][1], **my_contributions[org]
+            org=org,
+            tote=tote,
+            descr=my_orgs[org][1],
+            **my_contributions[org],
         )
 
     out += r"""
@@ -643,7 +709,7 @@ def create_software(max_repos, blacklist):
     """
 
     out += "\n\n"
-    out += r'\textbf{Original Codes}'
+    out += r"\textbf{Original Codes}"
     out += BLANK
     out += r"""
     Here I list notable codes that I originally authored and maintain. Much of my 
@@ -664,8 +730,10 @@ def create_software(max_repos, blacklist):
     for i, repo in enumerate(repos[:max_repos]):
         out += myformat(
             r"\href{<% url %>}{\bf <% name %>} & <% descr %>  & <% stargazers %> & <% nforks %> \\ ",
-            url=repo.html_url, name='/'.join(repo.html_url.split('/')[-2:]), 
-            descr=repo.description, nforks=f"{repo.forks_count:02d}",
+            url=repo.html_url,
+            name="/".join(repo.html_url.split("/")[-2:]),
+            descr=repo.description,
+            nforks=f"{repo.forks_count:02d}",
             stargazers=f"{repo.stargazers_count:02d}",
         )
 
@@ -675,13 +743,10 @@ def create_software(max_repos, blacklist):
         \end{table}
     """
 
-
-
-
     repos = get_all_my_repos()
 
-    out += '\n'
-    out += r'\textbf{Collaborative Codes}'
+    out += "\n"
+    out += r"\textbf{Collaborative Codes}"
     out += BLANK
     out += r"""
     Here I list notable codes that I contribute to collaboratively. They are listed in
@@ -699,18 +764,19 @@ def create_software(max_repos, blacklist):
             \hline
     """
 
-    for name, data in repos[:c.MAX_REPOS_COLLAB]:
-        repo = data['repo']
+    for name, data in repos[: c.MAX_REPOS_COLLAB]:
+        repo = data["repo"]
         out += myformat(
             r"\href{<% url %>}{\bf <% name %>} & <% descr %>  & <% stargazers %> & <% nforks %> & <% contribs %> (<% contribs_percent:d %>\%) & <% rank %>/<% ncontribs %>\\ ",
-            url=repo.html_url,# name=('/'.join(repo.html_url.split('/')[-2:])).replace('_', r'\_'),
-            name=repo.name.replace('_', r'\_'),
-            descr=repo.description, nforks=repo.forks_count,
+            url=repo.html_url,  # name=('/'.join(repo.html_url.split('/')[-2:])).replace('_', r'\_'),
+            name=repo.name.replace("_", r"\_"),
+            descr=repo.description,
+            nforks=repo.forks_count,
             stargazers=repo.stargazers_count,
-            contribs=data['contributions'],
-            contribs_percent=int(data['contrib_percent']),
-            rank=data['rank'],
-            ncontribs = data['ncontribs']
+            contribs=data["contributions"],
+            contribs_percent=int(data["contrib_percent"]),
+            rank=data["rank"],
+            ncontribs=data["ncontribs"],
         )
 
     out += r"""
@@ -718,8 +784,6 @@ def create_software(max_repos, blacklist):
         \end{tabularx}
         \end{table}
     """
-
-
 
     return out
 
@@ -737,20 +801,27 @@ def get_all_my_repos():
         total_contribs = 0
         for i, contrib in enumerate(contribs):
             if contrib.login == c.GITHUB_USER:
-                out_repos[repo.html_url] = {'contributions': contrib.contributions, 'rank':i+1, 'repo': repo}
+                out_repos[repo.html_url] = {
+                    "contributions": contrib.contributions,
+                    "rank": i + 1,
+                    "repo": repo,
+                }
             total_contribs += contrib.contributions
 
         if repo.html_url not in out_repos:
             continue
 
-        out_repos[repo.html_url]['contrib_percent'] = 100*(out_repos[repo.html_url]['contributions'] / total_contribs)
-        out_repos[repo.html_url]['ncontribs'] = len(contribs)
+        out_repos[repo.html_url]["contrib_percent"] = 100 * (
+            out_repos[repo.html_url]["contributions"] / total_contribs
+        )
+        out_repos[repo.html_url]["ncontribs"] = len(contribs)
 
-    return sorted(out_repos.items(), key= lambda x: x[1]['contributions'], reverse=True)
-    
+    return sorted(out_repos.items(), key=lambda x: x[1]["contributions"], reverse=True)
+
+
 @section
 def create_publications(library, surname, students):
-    url = fr"https://ui.adsabs.harvard.edu/public-libraries/{library}"
+    url = rf"https://ui.adsabs.harvard.edu/public-libraries/{library}"
 
     out = ""
     if c.USE_LINKS:
@@ -759,7 +830,9 @@ def create_publications(library, surname, students):
             r"Information correct as of <% today %>. Any arxiv e-prints displayed have been accepted. "
             r"Papers in each category listed in reverse chronological order. Papers with more than <% cites %>"
             r" citations per year highlighted in {\color{Orange} orange}.",
-            url=url, today=now.strftime("%d %b %Y"), cites=c.HIGHLIGHT_CITE_PER_YEAR
+            url=url,
+            today=now.strftime("%d %b %Y"),
+            cites=c.HIGHLIGHT_CITE_PER_YEAR,
         )
     else:
         out += myformat(
@@ -767,20 +840,35 @@ def create_publications(library, surname, students):
             r"Information correct as of <% today %>. Any arxiv e-prints displayed have been accepted."
             r"Papers in each category listed in reverse chronological order. Papers with more than <% cites %>"
             r" citations per year highlighted in {\color{Orange} orange}.",
-            url=url, today=now.strftime("%d %b %Y"), cites=c.HIGHLIGHT_CITE_PER_YEAR
+            url=url,
+            today=now.strftime("%d %b %Y"),
+            cites=c.HIGHLIGHT_CITE_PER_YEAR,
         )
     out += BLANK
 
     # Get all my papers
     print("    Collecting Publications from ADS...")
-    fields = ['bibcode', 'doctype', 'citation_count', 'title', 'author', 'year', 'pub', 'volume',
-              'page', 'read_count', "doi"]
-    papers = list(ads.SearchQuery(q=f"docs(library/{library})", fl=fields, max_pages=100))
+    fields = [
+        "bibcode",
+        "doctype",
+        "citation_count",
+        "title",
+        "author",
+        "year",
+        "pub",
+        "volume",
+        "page",
+        "read_count",
+        "doi",
+    ]
+    papers = list(
+        ads.SearchQuery(q=f"docs(library/{library})", fl=fields, max_pages=100)
+    )
     print(f"    Collected {len(papers)} papers")
 
     # Separate out proposals/conference proceedings
     confproc = [p for p in papers if p.doctype == "inproceedings"]
-#    papers = [p for p in papers if p.doctype == 'article' or (p.doctype == 'eprint' and p.bibcode in c.ACCEPTED)]
+    #    papers = [p for p in papers if p.doctype == 'article' or (p.doctype == 'eprint' and p.bibcode in c.ACCEPTED)]
 
     # Weed out duplicates
     papers_ = []
@@ -788,11 +876,11 @@ def create_publications(library, surname, students):
         if p in papers_:
             print(f"    Duplicate: {p.title[0]} [{p.bibcode}]")
             continue
-        if p.doctype != 'article':
-            if p.doctype == 'eprint' and p.bibcode not in c.ACCEPTED:
+        if p.doctype != "article":
+            if p.doctype == "eprint" and p.bibcode not in c.ACCEPTED:
                 print(f"    Not Accepted:  {p.title[0]} [{p.bibcode}]")
                 continue
-            elif p.doctype != 'eprint':
+            elif p.doctype != "eprint":
                 print(f"    Not An Article: {p.title[0]} [{p.bibcode}]")
                 continue
 
@@ -807,10 +895,6 @@ def create_publications(library, surname, students):
 
     mq = ads.MetricsQuery(bibcodes=[p.bibcode for p in papers])
     metrics = mq.execute()
-
-    # Get total metrics
-    citation_counts = [p.citation_count for p in papers]
-    ordered_cites = sorted(citation_counts, reverse=True)
 
     out += r"\textbf{At a Glance}"
     out += BLANK
@@ -828,25 +912,27 @@ def create_publications(library, surname, students):
         \end{tabular}
         \end{table}
         """,
-        tot_papers=len(papers), 
-        tot_cite=metrics['citation stats']['total number of citations'], 
-        norm_papers = metrics['basic stats']['normalized paper count'],
-        tot_norm_cite=metrics['citation stats']['normalized number of citations'], 
-        h_index=metrics['indicators']['h'], 
-        m_index=metrics['indicators']['m'],
-        g_index=metrics['indicators']['g'],
-        tori_index=metrics['indicators']['tori'],
-        i10_index=metrics['indicators']['i10'],
-        i100_index=metrics['indicators']['i100']
+        tot_papers=len(papers),
+        tot_cite=metrics["citation stats"]["total number of citations"],
+        norm_papers=metrics["basic stats"]["normalized paper count"],
+        tot_norm_cite=metrics["citation stats"]["normalized number of citations"],
+        h_index=metrics["indicators"]["h"],
+        m_index=metrics["indicators"]["m"],
+        g_index=metrics["indicators"]["g"],
+        tori_index=metrics["indicators"]["tori"],
+        i10_index=metrics["indicators"]["i10"],
+        i100_index=metrics["indicators"]["i100"],
     )
     out += BLANK
 
     # Sort papers in descending "importance"
-    papers = sorted(papers,
-                    key=lambda p: p.year,
-                    # lambda p: (p.citation_count +0.05*p.read_count)/ (0.01 + float(now.year) -
-                    # float(p.year))/(1 +author_number(p)),
-                    reverse=True)
+    papers = sorted(
+        papers,
+        key=lambda p: p.year,
+        # lambda p: (p.citation_count +0.05*p.read_count)/ (0.01 + float(now.year) -
+        # float(p.year))/(1 +author_number(p)),
+        reverse=True,
+    )
 
     journal_abbrev = {
         "Monthly Notices of the Royal Astronomical Society": "MNRAS",
@@ -866,7 +952,7 @@ def create_publications(library, surname, students):
         auth = paper.author
         for i, a in enumerate(auth):
             if surname in a:
-                auth[i] = r'\textbf{' + a + "}"
+                auth[i] = r"\textbf{" + a + "}"
 
         if len(paper.author) > 4:
             authors = ", ".join(auth[:3]) + " et. al."
@@ -877,15 +963,33 @@ def create_publications(library, surname, students):
         if journal:
             journal += ","
 
-        out = myformat(r"\item <% authors %> (<% year %>), \textit{<% title %>}, \href{<% url %>}{\color{" r"lightblue}{<% journal %> <% volume %> <% page %>}} \hfill ", title=paper.title[0], authors=authors, year=paper.year, journal=journal, volume=f"{paper.volume}," if paper.volume is not None else "", page=paper.page[0] if paper.page else '', url=paper.doi)
+        out = myformat(
+            r"\item <% authors %> (<% year %>), \textit{<% title %>}, \href{<% url %>}{\color{"
+            r"lightblue}{<% journal %> <% volume %> <% page %>}} \hfill ",
+            title=paper.title[0],
+            authors=authors,
+            year=paper.year,
+            journal=journal,
+            volume=f"{paper.volume}," if paper.volume is not None else "",
+            page=paper.page[0] if paper.page else "",
+            url=paper.doi,
+        )
 
-
-        if paper.citation_count / max(now.year - int(paper.year) , 1) >= c.HIGHLIGHT_CITE_PER_YEAR:
-            rest = r"{\color{Orange} \faPen~<% citation_count %>~~\faEye~<% read_count %>}"
-        else:   
+        if (
+            paper.citation_count / max(now.year - int(paper.year), 1)
+            >= c.HIGHLIGHT_CITE_PER_YEAR
+        ):
+            rest = (
+                r"{\color{Orange} \faPen~<% citation_count %>~~\faEye~<% read_count %>}"
+            )
+        else:
             rest = r"\faPen~<% citation_count %>~~\faEye~<% read_count %>"
 
-        rest = myformat(rest, citation_count=f'{paper.citation_count:>3}', read_count=f'{paper.read_count:>3}',)
+        rest = myformat(
+            rest,
+            citation_count=f"{paper.citation_count:>3}",
+            read_count=f"{paper.read_count:>3}",
+        )
         return out + rest
 
     # First do first-author papers
@@ -903,17 +1007,20 @@ def create_publications(library, surname, students):
                 \textbf{<% label %>} \hfill \faFile*~<% npapers %>\ \ \faPen~<% cites %>\ \ \faEye~<% reads %>
                 \hline
                 """,
-                label=label, cites=cite_count, reads=read_count, npapers=len(these)
+                label=label,
+                cites=cite_count,
+                reads=read_count,
+                npapers=len(these),
             )
-            out += r"\begin{enumerate}[itemsep=1pt%s]"%(',resume' if resume else '')
+            out += r"\begin{enumerate}[itemsep=1pt%s]" % (",resume" if resume else "")
 
             for paper in these:
                 out += write_paper(paper)
 
-#            out += r"\setcounter{itemc}{\value{enumi}}"
+            #            out += r"\setcounter{itemc}{\value{enumi}}"
             out += r"\end{enumerate}"
 
-        print(f"\t{label}:\n\t\t", end='')
+        print(f"\t{label}:\n\t\t", end="")
         print("\n\t\t".join([p.title[0] for p in these]))
         return out, papers
 
@@ -938,53 +1045,77 @@ def create_publications(library, surname, students):
 
         # Can't be first author
         if paper.author[0].startswith(surname):
-            if verbose: print("       is a first author")
+            if verbose:
+                print("       is a first author")
             return False
 
         # If you're top-4 you're always important
         if author_number(paper) <= c.TOP_N:
-            if verbose: print(f"       is a top-{c.TOP_N} author paper")
+            if verbose:
+                print(f"       is a top-{c.TOP_N} author paper")
             return True
 
         # If there's less than 12 authors, and you're not top 4, you're not important.
         if len(paper.author) < c.ALPHABET_N:
-            if verbose: print(
-                f"       is a small-group paper where you're not in the top {c.TOP_N}")
+            if verbose:
+                print(
+                    f"       is a small-group paper where you're not in the top {c.TOP_N}"
+                )
             return False
 
         # Otherwise, you're important if it's got an alphabetical order list and you're before it.
         for i in range(1, len(paper.author) - 1):
-            if paper.author[-(i + 1)].split(",")[0].split(" ")[-1] > \
-                    paper.author[-i].split(",")[0].split(" ")[-1]:
+            if (
+                paper.author[-(i + 1)].split(",")[0].split(" ")[-1]
+                > paper.author[-i].split(",")[0].split(" ")[-1]
+            ):
                 break
 
         if i < c.ALPHABET_N:
             # Not an alphabetical list at the end
-            if verbose: print(
-                "       is a large-collab paper with no alphabetical listing, where you're not "
-                "top 4")
+            if verbose:
+                print(
+                    "       is a large-collab paper with no alphabetical listing, where you're not "
+                    "top 4"
+                )
             return False
         if author_number(paper) > len(paper.author) - i:
             # My name is part of the alphabetical list
-            if verbose: print(
-                "       is a large-collab paper where you're in the alphabetical section of "
-                "authors")
+            if verbose:
+                print(
+                    "       is a large-collab paper where you're in the alphabetical section of "
+                    "authors"
+                )
             return False
 
-        if verbose: print("       is a large-collab paper where you are before the alphabetical ")
+        if verbose:
+            print(
+                "       is a large-collab paper where you are before the alphabetical "
+            )
         return True
 
     # Student's papers
-    _out, papers = write_subset(papers, "Supervised papers by my students", lambda p: any(pp in p.author[0] for pp in students))
+    _out, papers = write_subset(
+        papers,
+        "Supervised papers by my students",
+        lambda p: any(pp in p.author[0] for pp in students),
+    )
     out += _out
-    
+
     # "Important" author
-    _out, papers = write_subset(papers, "Papers with significant contribution to analysis",
-                                lambda p: is_important_author(surname, p))
+    _out, papers = write_subset(
+        papers,
+        "Papers with significant contribution to analysis",
+        lambda p: is_important_author(surname, p),
+    )
     out += _out
 
     # All other papers
-    _out, papers = write_subset(papers, "Collaboration papers (contr. to analysis and/or writing)", lambda p: True)
+    _out, papers = write_subset(
+        papers,
+        "Collaboration papers (contr. to analysis and/or writing)",
+        lambda p: True,
+    )
     out += _out
 
     if confproc:
@@ -1005,25 +1136,29 @@ def create_presentations(write_posters, write_local_talks):
 
     def write_talks(talk_list):
         out = r"\begin{enumerate}"
-        for talk in sorted(talk_list, key=lambda x: int(x['StartDate'].strip("/")[-1]),
-                           reverse=True):
-            date = datetime.datetime.strptime(talk['StartDate'], "%d/%m/%Y")
+        for talk in sorted(
+            talk_list, key=lambda x: int(x["StartDate"].strip("/")[-1]), reverse=True
+        ):
+            date = datetime.datetime.strptime(talk["StartDate"], "%d/%m/%Y")
             out += myformat(
                 r"\item ``<% title %>'' at <% Name %>, <% City %>, <% Country %> (<% date %>) <% "
                 r"prize %>",
                 date=date.strftime("%b %Y"),
-                title=myformat(r"\href{<% URL %>}{<% Title %>}", **talk) if talk['URL'] else talk[
-                    'Title'],
-                prize=r"[\textbf{Prize for %s}]" % (talk['Awards'].replace(";", " and")) if talk[
-                    'Awards'] else "",
-                **talk)
-            out += '\n'
+                title=myformat(r"\href{<% URL %>}{<% Title %>}", **talk)
+                if talk["URL"]
+                else talk["Title"],
+                prize=r"[\textbf{Prize for %s}]" % (talk["Awards"].replace(";", " and"))
+                if talk["Awards"]
+                else "",
+                **talk,
+            )
+            out += "\n"
         out += r"\end{enumerate}"
         out += BLANK
         return out
 
     # Get Invited Talks
-    invited = [p for p in presentations if p['Invited Speaker?'] == "Yes"]
+    invited = [p for p in presentations if p["Invited Speaker?"] == "Yes"]
     if invited:
         out += r"\textbf{Invited Talks}"
         out += HLINE
@@ -1033,20 +1168,28 @@ def create_presentations(write_posters, write_local_talks):
     out += r"\textbf{Seminars}"
     out += HLINE
     out += r"\begin{enumerate}"
-    for talk in sorted(seminars, key=lambda x: int(x['Date'].strip("/")[-1]), reverse=True):
-        date = datetime.datetime.strptime(talk['Date'], "%d/%m/%Y")
+    for talk in sorted(
+        seminars, key=lambda x: int(x["Date"].strip("/")[-1]), reverse=True
+    ):
+        date = datetime.datetime.strptime(talk["Date"], "%d/%m/%Y")
         out += myformat(
             r"\item ``<% title %>'', <% Location %> (<% Date %>) ",
             date=date.strftime("%b %Y"),
-            title=myformat(r"\href{<% TalkURL %>}{<% TalkTitle %>}", **talk) if talk['TalkURL'] else talk['TalkTitle'],
-            **talk)
-        out += '\n'
+            title=myformat(r"\href{<% TalkURL %>}{<% TalkTitle %>}", **talk)
+            if talk["TalkURL"]
+            else talk["TalkTitle"],
+            **talk,
+        )
+        out += "\n"
     out += r"\end{enumerate}"
     out += BLANK
 
     # Get Contributed Talks
-    contributed = [p for p in presentations if
-                   p['Invited Speaker?'] == "No" and p["Type of contribution"] == "Talk"]
+    contributed = [
+        p
+        for p in presentations
+        if p["Invited Speaker?"] == "No" and p["Type of contribution"] == "Talk"
+    ]
     if contributed:
         out += r"\textbf{Contributed Talks}"
         out += HLINE
@@ -1054,7 +1197,7 @@ def create_presentations(write_posters, write_local_talks):
 
     # Get posters
     if write_posters:
-        posters = [p for p in presentations if p['Type of contribution'] == "Poster"]
+        posters = [p for p in presentations if p["Type of contribution"] == "Poster"]
         if posters:
             out += r"\textbf{Posters}"
             out += write_talks(posters)
@@ -1064,32 +1207,39 @@ def create_presentations(write_posters, write_local_talks):
         local_talks = lol_to_lod(data.worksheet("Other Presentations").get_all_values())
 
         def write_local(local_talks, kind):
-            out = r"\noindent\textbf{%s %ss}"%("Local" if kind!="Tutorial" else "", kind)
+            out = r"\noindent\textbf{%s %ss}" % (
+                "Local" if kind != "Tutorial" else "",
+                kind,
+            )
             out += HLINE
             out += r"\begin{enumerate}"
             for talk in local_talks:
-                url = talk['VideoURL']
+                url = talk["VideoURL"]
                 if not url:
-                    url = talk['TalkURL']
+                    url = talk["TalkURL"]
 
-                if talk['TalkURL'] or talk['VideoURL']:
+                if talk["TalkURL"] or talk["VideoURL"]:
                     out += myformat(
                         r"\item ``\href{<% url %>}{<% Title %>}'' at <% Name %>, <% Location %> (<% "
                         r"Date %>)",
                         url=url,
-                        **talk
+                        **talk,
                     )
                 else:
-                    out += myformat(r"\item ``<% Title %>'' at <% Name %>, <% Location %> (<% Date %>)",
-                                    **talk)
-                out += '\n'
+                    out += myformat(
+                        r"\item ``<% Title %>'' at <% Name %>, <% Location %> (<% Date %>)",
+                        **talk,
+                    )
+                out += "\n"
             out += r"\end{enumerate}"
             out += BLANK
 
             return out
 
-        kinds = {talk['Kind'] for talk in local_talks}
+        kinds = {talk["Kind"] for talk in local_talks}
         for kind in kinds:
-            out += write_local([talk for talk in local_talks if talk['Kind'] == kind], kind)
+            out += write_local(
+                [talk for talk in local_talks if talk["Kind"] == kind], kind
+            )
 
     return out

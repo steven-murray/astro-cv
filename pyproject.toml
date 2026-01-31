@@ -31,6 +31,7 @@ ads = { git = "https://github.com/andycasey/ads" }
 [dependency-groups]
 dev = [
     "ipython>=9.9.0",
+    "ruff>=0.14.14",
 ]
 
 [project.scripts]

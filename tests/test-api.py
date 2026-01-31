@@ -1,10 +1,13 @@
-GH = "token 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"
-
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 
-transport = RequestsHTTPTransport(url='https://api.github.com/graphql', headers={'Authorization': GH})
+GH = "token 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"
+
+transport = RequestsHTTPTransport(
+    url="https://api.github.com/graphql", headers={"Authorization": GH}
+)
 client = Client(transport=transport)
+
 
 def get_contributions(org_id):
     query = gql(
@@ -28,8 +31,10 @@ def get_contributions(org_id):
         """
     )
 
-    out = client.execute(query, variable_values={'org_id': org_id})
+    out = client.execute(query, variable_values={"org_id": org_id})
     return out
+
+
 def get_orgs():
     query = gql(
         """
@@ -49,10 +54,11 @@ def get_orgs():
 
     this = client.execute(query)
     out = {}
-    for node in this['viewer']['organizations']['nodes']:
-        out[node['login']] = node['id']
+    for node in this["viewer"]["organizations"]["nodes"]:
+        out[node["login"]] = node["id"]
 
     return out
+
 
 orgs = get_orgs()
 
@@ -62,4 +68,3 @@ for org, id in orgs.items():
 
 print(orgs)
 print(contribs)
-
