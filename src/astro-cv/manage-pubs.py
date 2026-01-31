@@ -7,7 +7,7 @@ the `questionary` and `pyyaml` packages (`pip install questionary pyyaml`).
 You also must create an ADS API key (go to your settings page on ADS) and save it in
 `~/.ads/dev_key`.
 
-Call simply as `python manage-pubs.py` and it will print out the results in HTML format
+Call simply as `astro-cv manage-pubs` and it will print out the results in HTML format
 to stdout.
 
 What happens under the hood is that it will perform an automatic search based on LoCo
@@ -23,25 +23,25 @@ New LoCo members should add their names to the `locos` list below.
 # TODO: ability to add orcid
 
 import ads
-import argparse
 from datetime import datetime
 import questionary as qs
 from ads.libraries import Library
+from pathlib import Path
 import yaml
 
 now = datetime.now()
 
-parser = argparse.ArgumentParser(description='Print out all LoCo publications.')
-parser.add_argument("config", type=str)
 
-args = parser.parse_args()
+def main(config: Path):
+    """Main entry point for managing publications."""
+def main(config: Path):
+    """Main entry point for managing publications."""
+    
+    with open(config, 'r') as fl:
+        cfg = yaml.safe_load(fl)
 
 
-with open(args.config, 'r') as fl:
-    cfg = yaml.safe_load(fl)
-
-
-affiliations = ['"' + aff + '"' for aff in cfg['affiliations']]
+    affiliations = ['"' + aff + '"' for aff in cfg['affiliations']]
 
 
 library = Library(cfg['library'])
@@ -167,21 +167,31 @@ if n := len(new_papers):
         elif res=='no':
             no_keep.append(p.bibcode)
         elif res == 'quit':
-            break
+    # Now we've updated the library, we re-get all the papers in the actual library.
+    papers = list(ads.SearchQuery(
+        q=f'docs(library/{library.id}) NOT orcid:{orcid}',
+        sort='date desc',
+        max_pages=100,
+        fl=['author', 'title', 'bibcode', 'year', 'orcid_pub']
+    ))
 
-    library.add_documents(keep)
-    false_lib.add_documents(no_keep)
+    if papers:
+        print("The following papers were in your library but are not associated with your ORCID on ADS:")
+        for p in papers:
+            print(f"  - {p.author[0]}: {p.title[0]} ({p.year})")
+        print("Follow this link to associate them: ")
+        bibcodes = "%20OR%20".join([p.bibcode for p in papers])
+        print(f'  https://ui.adsabs.harvard.edu/search/q=docs(library%2F{library.id})%20NOT%20orcid%3A{orcid}')
 
-# Now we've updated the library, we re-get all the papers in the actual library.
-papers = list(ads.SearchQuery(
-    q=f'docs(library/{library.id}) NOT orcid:{orcid}',
-    sort='date desc',
-    max_pages=100,
-    fl=['author', 'title', 'bibcode', 'year', 'orcid_pub']
-))
 
-if papers:
-    print("The following papers were in your library but are not associated with your ORCID on ADS:")
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Print out all LoCo publications.')
+    parser.add_argument("config", type=str)
+    args = parser.parse_args()
+    
+    main(Path(args.config)
     for p in papers:
         print(f"  - {p.author[0]}: {p.title[0]} ({p.year})")
     print("Follow this link to associate them: ")

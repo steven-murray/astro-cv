@@ -10,7 +10,8 @@ def compile_latex(fname):
         os.system(f"""pdflatex -synctex=1 -interaction=nonstopmode {fname} > {fname.replace("tex", 'log')}""")
 
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for CV generation."""
     document = document.replace("{%firstname%}", c.FIRSTNAME)
     document = document.replace("{%surname%}", c.SURNAME)
 
