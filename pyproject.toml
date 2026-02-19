@@ -36,4 +36,4 @@ dev = [
 ]
 
 [project.scripts]
-astro-cv = "astro_cv.cli:main"
+astro-cv = "astro_cv.cli:app"

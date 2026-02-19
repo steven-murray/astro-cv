@@ -1,122 +1,176 @@
+"""Generate CV from modular sections - generic modular approach."""
+
+import importlib
 import os
+import tomllib
+from pathlib import Path
+import logging
+from astro_cv.formats.latex import compile_latex, write_section
+from astro_cv.structure import document
+from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
 
-import config as c
-import sections as sc
-from structure import document
+logger = logging.getLogger(__name__)
 
 
-def compile_latex(fname):
-    for _ in range(2):
-        os.system(
-            f"""pdflatex -synctex=1 -interaction=nonstopmode {fname} > {fname.replace("tex", "log")}"""
+def load_cv_settings(config_dir: Path) -> dict:
+    """Load general CV settings from TOML file.
+
+    Args:
+        config_dir: Directory containing cv-settings.toml
+
+    Returns:
+        Dictionary of CV settings
+    """
+    config_file = config_dir / "cv-settings.toml"
+    with open(config_file, "rb") as f:
+        return tomllib.load(f)
+
+
+def initialize_data_connectors(data_connectors_config: dict) -> dict:
+    # Setup each integration
+    connectors = {"toml": LocalTOMLConnector()}
+    for name, dc_config in data_connectors_config.items():
+        connector_name = dc_config.pop("data_connector", name)
+        logger.info(
+            f"Setting up data connector '{name}' with connector '{connector_name}'"
         )
 
+        # Import the connector module
+        connector_module = importlib.import_module(
+            f"astro_cv.data_connectors.{connector_name}"
+        )
+        DataConnector = getattr(connector_module, "DataConnector")
 
-def main():
-    """Main entry point for CV generation."""
-    document = document.replace("{%firstname%}", c.FIRSTNAME)
-    document = document.replace("{%surname%}", c.SURNAME)
+        for k, v in dc_config.items():
+            if isinstance(v, str) and v.startswith("env:"):
+                env_var = v[4:]
+                v = os.environ.get(env_var)
+                if v is None:
+                    raise ValueError(
+                        f"Environment variable '{env_var}' not set for connector '{name}'"
+                    )
+
+                dc_config[k] = v
+                logger.info(
+                    f"Loaded environment variable '{env_var}' for connector '{name}'"
+                )
+
+        connectors[name] = DataConnector(**dc_config)
+
+    return connectors
+
+
+def get_section_data(section_name: str, config_dir: Path, connectors: dict):
+    logger.info(f"Processing section: {section_name}")
+
+    section_file = config_dir / (section_name + ".toml")
+
+    # Load section config
+    with open(section_file, "rb") as f:
+        section_config = tomllib.load(f)
+
+    # Determine which connector to use
+    connector_name = section_config.get("data_connector", "toml")
+
+    # Import the connector module
+    try:
+        connector = connectors[connector_name]
+    except KeyError:
+        logger.error(
+            f"Data connector '{connector_name}' not found for section '{section_name}'"
+        )
+        return
+
+    return connector.get(section_name, section_file)
+
+
+def main(config_dir: Path, output_dir: Path = Path("outputs")):
+    """Main entry point for CV generation.
+
+    Processes each section by:
+    1. Loading the section's TOML configuration
+    2. Determining the data connector to use
+    3. Fetching data via the connector
+    4. Rendering the section to LaTeX
+    5. Appending to the CV body
+
+    Args:
+        config_dir: Directory containing TOML configuration files
+        output_dir: Directory where output files will be written
+    """
+    config_dir = Path(config_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
+
+    # Load general settings
+    settings = load_cv_settings(config_dir)
+    sections_to_include = settings.get("sections", [])
+    data_connectors = settings.get("data_connectors", {})
+    connectors = initialize_data_connectors(data_connectors)
+
+    # Load contact information early to get firstname/surname for document
+    contact_info = get_section_data("contact-information", config_dir, connectors)
+
+    # Initialize document with name
+    doc = document.replace("{%firstname%}", contact_info.personal.firstname)
+    doc = doc.replace("{%surname%}", contact_info.personal.surname)
 
     body = ""
-    # Contact Info
-    if "contact_information" not in c.OMIT_SECTIONS:
-        body += sc.create_contact_information(
-            institution_country=c.INSTITUTION_COUNTRY,
-            institution_location=c.INSTITUTION_LOCATION,
-            institution_name=c.INSTITUTION_NAME,
-            institution_street=c.INSTITUTION_STREET,
-            institution_url=c.INSTITUTION_URL,
-            department_name=c.DEPARTMENT_NAME,
-            phone_number=c.PHONE_NUMBER,
-            email=c.EMAIL,
-            websites=c.WEBSITES,
-        )
+    publist = ""
 
-    if "academic_references" not in c.OMIT_SECTIONS:
-        body += sc.create_academic_references(c.REFERENCES, c.MAXREF)
+    # Process sections in order
+    for section_name in sections_to_include:
+        if section_name == "contact-information":
+            data = contact_info
+        else:
+            data = get_section_data(section_name, config_dir, connectors)
+            if data is None:
+                continue
 
-    if "research_interests" not in c.OMIT_SECTIONS:
-        body += sc.create_research_interests(c.RESEARCH_INTERESTS)
+        section_latex = write_section(section_name, data)
+        # section_key = section_name.replace("-", "_")
+        # section_module = importlib.import_module(f"astro_cv.sections.{section_key}")
 
-    if "education" not in c.OMIT_SECTIONS:
-        body += sc.create_education(
-            c.KEEP_UNDERGRAD, c.KEEP_SECONDARY, c.KEEP_UNDERGRAD_COURSES
-        )
+        # # Render section to LaTeX
+        # section_latex = section_module.create(data)
 
-    if "professional_experience" not in c.OMIT_SECTIONS:
-        body += sc.create_professional_experience(
-            c.JOBS, c.JOB_MIN_RATING, c.JOB_MIN_DATE
-        )
+        # Append to body (publications are handled separately)
+        # if section_key == "publications":
+        #     publist = section_latex
 
-    if "software" not in c.OMIT_SECTIONS:
-        body += sc.create_software(c.MAX_REPOS, c.BLACKLIST)
+        #     # Write standalone publication list
+        #     logger.info("Writing standalone publication list to outputs/publist.pdf")
+        #     pubdoc = doc.replace(r"{%body%}", publist)
+        #     pubdoc = pubdoc.replace(r"{%doctype%}", "Publication List")
 
-    if "academic_experience" not in c.OMIT_SECTIONS:
-        body += sc.create_academic_experience(
-            c.OMIT_GRANTS,
-            c.OMIT_COLLABORATIONS,
-            c.OMIT_COMMITTEES,
-            c.OMIT_REFEREES,
-            c.OMIT_LECTURING,
-            c.OMIT_SUPERVISION,
-            c.OMIT_TEACHING,
-            c.OMIT_OUTREACH,
-            c.OMIT_PROF_TRAINING,
-            c.OMIT_PERSONAL_TRAINING,
-            c.OMIT_INDUSTRY,
-        )
+        #     publist_tex = output_dir / "publist.tex"
+        #     with open(publist_tex, "w") as f:
+        #         f.write(pubdoc)
 
-    if "awards_and_scholarships" not in c.OMIT_SECTIONS:
-        body += sc.create_awards_and_scholarships(
-            c.AWARDS_MIN_YEAR, c.AWARDS_MIN_RATING
-        )
+        #     compile_latex(publist_tex, output_dir=output_dir)
+        # else:
+        body += section_latex
 
-    if "technical_skills" not in c.OMIT_SECTIONS:
-        body += sc.create_technical_skills()
+    # Finalize document
+    doc = doc.replace(r"{%doctype%}", "C.V.")
 
-    if "press_releases" not in c.OMIT_SECTIONS:
-        body += sc.create_press_releases()
-
-    if "presentations" not in c.OMIT_SECTIONS:
-        body += sc.create_presentations(c.WRITE_POSTERS, c.WRITE_LOCAL_TALKS)
-
-    if "publications" not in c.OMIT_SECTIONS:
-        publist = sc.create_publications(c.LIBRARY, c.SURNAME, c.STUDENTS)
-
-        print("    Writing standalone publication list to outputs/publist.pdf")
-        # Write out the publication list standalone
-        pubdoc = document.replace(r"{%body%}", publist)
-        pubdoc = pubdoc.replace(r"{%doctype%}", "Publication List")
-
-        # write out and compile the publist
-        with open("outputs/publist.tex", "w") as f:
-            f.write(pubdoc)
-
-        os.chdir("outputs")
-        compile_latex("publist.tex")
-        os.chdir("..")
-    else:
-        publist = ""
-
-    document = document.replace(r"{%doctype%}", "C.V.")
-
+    # Generate CV variants
     for kind in ["nopubs", "full"]:
         if kind == "full":
-            doc = document.replace(r"{%body%}", body + publist)
-
+            final_doc = doc.replace(r"{%body%}", body + publist)
         elif kind == "nopubs":
-            doc = document.replace(r"{%body%}", body)
-        cvname = f"cv_{kind}.tex"
+            final_doc = doc.replace(r"{%body%}", body)
 
-        print(
-            f"""Writing CV with{"out" if kind == "nopubs" else ""} publist at outputs/{cvname}"""
+        cvname = f"cv_{kind}.tex"
+        cv_path = output_dir / cvname
+
+        logger.info(
+            f"""Writing CV with{"out" if kind == "nopubs" else ""} publist at {cv_path}"""
         )
 
         # Write out a tex file
-        with open(f"outputs/{cvname}", "w") as f:
-            f.write(doc)
+        with open(cv_path, "w") as f:
+            f.write(final_doc)
 
         # Compile the Document
-        os.chdir("outputs")
-        compile_latex(cvname)
-        os.chdir("..")
+        compile_latex(cv_path, output_dir=output_dir)
