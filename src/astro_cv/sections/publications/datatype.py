@@ -61,17 +61,18 @@ def _to_tuple_of_pubs(pubs: list | tuple | None) -> tuple[Publication, ...]:
     )
 
 
-@attrs.define(frozen=True)
+@attrs.define(frozen=True, kw_only=True)
 class PublicationList:
     """Class to hold a list of publications."""
+
+    # Settings from TOML
+    library: str
+    surname: str
 
     publications: Union[tuple[Publication, ...], list, tuple] = attrs.field(
         factory=tuple, converter=_to_tuple_of_pubs
     )
 
-    # Settings from TOML
-    library: str = ""
-    surname: str = ""
     students: list[str] = attrs.field(factory=list)
     do_proceedings: bool = False
     top_n: int = 4

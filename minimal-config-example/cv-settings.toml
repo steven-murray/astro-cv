@@ -1,0 +1,15 @@
+# Minimal CV Settings Example
+# This example demonstrates using only the TOML data connector
+
+# Ordered list of sections to include in CV
+# Use kebab-case naming (as in TOML filenames)
+sections = [
+    "contact-information",
+    "research-interests",
+    "education",
+]
+
+# Data Connector Settings
+# Only TOML connector is configured for this minimal example
+[data_connectors.toml]
+# No configuration needed - the toml connector reads files relative to config_path

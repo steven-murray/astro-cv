@@ -8,6 +8,9 @@ import attrs
 from ads.libraries import Library
 from astro_cv.sections.publications import PublicationList, Publication
 from .nasa_ads import obtain_library_papers
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DataConnector:
@@ -15,15 +18,14 @@ class DataConnector:
 
     def __init__(
         self,
-        library_id: Optional[str] = None,
+        library_id: str,
         cache_path: Optional[Path | str] = None,
-        verbose: bool = False,
     ):
         """Initialize ADS connector.
 
         Parameters
         ----------
-        library_id : str, optional
+        library_id : str
             ADS library ID to fetch publications from.
         cache_path : Path or str, optional
             Path to cache file for publications. If provided, will read from cache.
@@ -32,12 +34,10 @@ class DataConnector:
         """
         self.library_id = library_id
         self.cache_path = Path(cache_path) if cache_path else None
-        self.verbose = verbose
 
     def get_publication_list(
         self,
-        library_id: Optional[str] = None,
-        use_cache: bool = True,
+        pub_list: PublicationList,
     ) -> PublicationList:
         """Get publication list from ADS library.
 
@@ -53,13 +53,9 @@ class DataConnector:
         PublicationList
             Publication list populated with papers from ADS library.
         """
-        lib_id = library_id or self.library_id
+        lib_id = pub_list.library
 
-        if not lib_id:
-            raise ValueError("No library_id provided")
-
-        if self.verbose:
-            print(f"Fetching publications from ADS library: {lib_id}")
+        logger.info(f"Fetching publications from ADS library: {lib_id}")
 
         # Get papers from ADS library (with caching handled internally)
         library = Library(lib_id)
@@ -79,8 +75,7 @@ class DataConnector:
             ),
         )
 
-        if self.verbose:
-            print(f"Retrieved {len(papers)} publications")
+        logger.info(f"Retrieved {len(papers)} publications")
 
         # Convert to Publication objects
         publications = []
@@ -88,7 +83,7 @@ class DataConnector:
             pub = self.ads_article_to_publication(paper)
             publications.append(pub)
 
-        return PublicationList(publications=tuple(publications))
+        return attrs.evolve(pub_list, publications=tuple(publications))
 
     @classmethod
     def ads_article_to_publication(cls, article: Article) -> Publication:
@@ -112,8 +107,7 @@ class DataConnector:
             doctype=getattr(article, "doctype", ""),
         )
 
-    @classmethod
-    def get(cls, section_name: str, config_path: Path | str) -> Any:
+    def get(self, section_name: str, config_path: Path | str) -> Any:
         """Generic method to get section data from ADS.
 
         Parameters
@@ -145,14 +139,7 @@ class DataConnector:
         # Load settings from TOML file
         pub_list = PublicationList.read_toml(config_path)
 
-        # Fetch publications using library ID
-        if not pub_list.library:
-            print("Warning: No library ID in config, skipping publication fetch")
-            return pub_list
-
-        # Create a temporary connector with the library ID to fetch publications
-        temp_conn = cls(library_id=pub_list.library, verbose=False)
-        fetched_publications = temp_conn.get_publication_list(pub_list.library)
+        fetched_publications = self.get_publication_list(pub_list)
 
         # Return a new PublicationList with publications merged in
         return attrs.evolve(pub_list, publications=fetched_publications.publications)

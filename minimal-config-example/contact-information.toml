@@ -1,0 +1,29 @@
+# Minimal Contact Information Example
+
+[institution]
+name = "Example University"
+url = "https://example.edu"
+department_name = "Department of Physics"
+street = "123 Main Street"
+location = "City, State 12345"
+country = "Country"
+
+[personal]
+firstname = "John"
+surname = "Doe"
+email = "john.doe@example.edu"
+citizenship = ["Country"]
+phone_number = "+1 (555) 123-4567"
+
+[online]
+orcid = "0000-0000-0000-0000"
+
+[[websites]]
+url = "https://example.com"
+kind = "web"
+id = "example.com"
+
+[[websites]]
+url = "https://github.com/example"
+kind = "github"
+id = "example"

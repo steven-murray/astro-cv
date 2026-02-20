@@ -3,7 +3,7 @@
 import time
 
 import cyclopts
-import yaml
+import tomllib
 from ads.exceptions import APIResponseError
 from ads.libraries import Library
 from rich.console import Console
@@ -203,10 +203,10 @@ def report(
 def refresh_cache(repo: cyclopts.types.ExistingDirectory):
     # Write the library to cache
     cache = repo / "ads" / "library-cache.toml"
-    config = repo / "ads" / "config.yaml"
+    config = repo / "ads" / "config.toml"
 
     with open(config, "r") as fl:
-        cfg = yaml.safe_load(fl)
+        cfg = tomllib.load(fl)
 
     library = Library(cfg["library"])
 
@@ -271,14 +271,14 @@ def manage(
         only_refresh: If True, only refresh the library cache without making changes to
             the ADS library.
     """
-    config = repo / "ads" / "config.yaml"
+    config = repo / "ads" / "config.toml"
 
     if not config.exists():
         console.print(f"[bold red]Configuration file not found at {config}[/bold red]")
         return
 
     with open(config, "r") as fl:
-        cfg = yaml.safe_load(fl)
+        cfg = tomllib.load(fl)
 
     library = Library(cfg["library"])
 

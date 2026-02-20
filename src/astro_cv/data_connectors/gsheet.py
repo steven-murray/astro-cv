@@ -15,6 +15,8 @@ from astro_cv.sections.academic_experience import (
     CollaborationEntry,
     SupervisionEntry,
 )
+from astro_cv.sections import academic_experience
+
 from astro_cv.sections.press_releases import PressReleases, PressReleaseEntry
 
 logger = logging.getLogger(__name__)
@@ -317,7 +319,8 @@ class DataConnector:
                         method = getattr(self, f"get_{attr_name}")
                         entries.append(method(row))
                     else:
-                        entries.append(globals()[entry_type].from_dict(row))
+                        cls = getattr(academic_experience, entry_type)
+                        entries.append(cls.from_dict(row))
 
                 all_entries[attr_name] = entries
 
