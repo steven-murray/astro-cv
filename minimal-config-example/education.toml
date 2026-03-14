@@ -1,0 +1,43 @@
+# Minimal Education Example
+
+[settings]
+keep_undergrad = true
+keep_secondary = false
+keep_undergrad_courses = false
+
+[[institutions]]
+name = "Example University"
+url = "https://example.edu"
+city = "Example City"
+country = "Country"
+
+	[[institutions.degrees]]
+	level = "postgrad"
+	title = "PhD"
+	subject = "Physics"
+	subject_url = "https://example.edu/physics"
+	years = "2018--2022"
+	thesis_title = "A Great Thesis on an Important Topic"
+	area_of_study = "Subfield of Physics"
+
+		[[institutions.degrees.supervisors]]
+		name = "Prof. Jane Smith"
+		url = "https://example.edu/jsmith"
+
+	[[institutions.degrees]]
+	level = "undergrad"
+	title = "Bachelor of Science"
+	subject = "Physics"
+	years = "2014--2018"
+	graduation = "With Honors"
+
+[[institutions]]
+name = "Secondary School"
+url = "https://secondary.edu"
+city = "Example City"
+country = "Country"
+
+	[[institutions.degrees]]
+	level = "secondary"
+	title = "Secondary Education"
+	years = "2006--2014"

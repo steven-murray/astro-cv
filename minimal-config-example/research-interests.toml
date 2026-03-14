@@ -1,0 +1,13 @@
+# Minimal Research Interests Example
+
+[interests]
+"Topic One" = [
+    "sub-topic A",
+    "sub-topic B",
+    "sub-topic C",
+]
+
+"Topic Two" = [
+    "sub-topic X",
+    "sub-topic Y",
+]
