@@ -87,9 +87,9 @@ def create(data: AcademicExperience) -> str:
                 data.grants,
                 "Grants",
                 r"\item <% authors %>\hfill<% start_year %>\\ \textit{<% title %>}, <% grant %>\hfill<% award_amount %>",
-                award_amount=lambda x: (r"\textbf{%s}" % x.amount).replace("$", "\$")
-                if x.amount
-                else "",
+                award_amount=lambda x: (
+                    (r"\textbf{%s}" % x.amount).replace("$", "\$") if x.amount else ""
+                ),
             )
         )
 
@@ -136,9 +136,9 @@ def create(data: AcademicExperience) -> str:
                 "Supervision",
                 r"\item <% cosup %> <% level %> <% student %>: <% student_name %> (<% start_year %>~--~<% end_year %>)",
                 cosup=lambda x: "Co-supervised" if x.co_supervised else "Supervised",
-                student=lambda x: "student"
-                if x.level in ["PhD", "Masters", "Honours"]
-                else "",
+                student=lambda x: (
+                    "student" if x.level in ["PhD", "Masters", "Honours"] else ""
+                ),
             )
         )
 
@@ -157,11 +157,15 @@ def create(data: AcademicExperience) -> str:
                 data.outreach,
                 "Outreach",
                 r"\item <% activity %> (<% location %>, <% start_year %>/<% start_month %>/<% start_day %>",
-                activity=lambda x: myformat(
-                    r"\href{<% url %>}{<% activity %>}", url=x.url, activity=x.activity
-                )
-                if x.url
-                else x.activity,
+                activity=lambda x: (
+                    myformat(
+                        r"\href{<% url %>}{<% activity %>}",
+                        url=x.url,
+                        activity=x.activity,
+                    )
+                    if x.url
+                    else x.activity
+                ),
             )
         )
 
