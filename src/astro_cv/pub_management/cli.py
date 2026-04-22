@@ -234,6 +234,7 @@ def refresh_cache(repo: cyclopts.types.ExistingDirectory):
                     oldcount,
                     p.citation_count,
                     p.citation_count - oldcount,
+                    p.title,
                 )
 
         console.print(
@@ -250,9 +251,9 @@ def refresh_cache(repo: cyclopts.types.ExistingDirectory):
             top_increases = sorted(
                 new_citations.items(), key=lambda x: x[1][2], reverse=True
             )[:5]
-            for bibcode, (old_count, new_count, diff) in top_increases:
+            for bibcode, (old_count, new_count, diff, title) in top_increases:
                 console.print(
-                    f"  - [dim]{bibcode}:[/dim] {old_count} -> {new_count} ([green]+{diff}[/green])"
+                    f"  - [dim]{bibcode}:[/dim] {old_count} -> {new_count} ([green]+{diff}[/green]) - {title}"
                 )
 
         new_papers = [p for p in papers if p.bibcode not in cachepubs]
