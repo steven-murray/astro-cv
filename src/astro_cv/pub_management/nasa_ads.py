@@ -230,7 +230,7 @@ def compare_query_to_library(papers, known_papers, indices, author_aff, orcids):
 
 
 def remove_excess_papers_from_library(
-    excess_papers, library: Library, console: Console | None
+    excess_papers, library: Library, console: Console | None = None
 ):
     """Interactively remove excess papers from the library.
 

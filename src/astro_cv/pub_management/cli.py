@@ -234,7 +234,7 @@ def refresh_cache(repo: cyclopts.types.ExistingDirectory):
                     oldcount,
                     p.citation_count,
                     p.citation_count - oldcount,
-                    p.title,
+                    p.title[0],
                 )
 
         console.print(
