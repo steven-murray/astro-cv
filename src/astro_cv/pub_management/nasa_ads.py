@@ -25,8 +25,7 @@ import questionary as qs
 import tomli_w
 import tomllib
 from ads.libraries import Library
-
-now = datetime.now()
+from rich.console import Console
 
 
 def get_author_index(authors: list[str], name: str) -> list[int]:
@@ -83,6 +82,7 @@ def build_query(
     Returns:
         ADS query string
     """
+    now = datetime.now()
     quoted_affiliations = ['"' + aff + '"' for aff in affiliations]
     affiliation_q = " OR ".join(quoted_affiliations)
     year = f"year:{started_year}-{now.year}"
@@ -229,47 +229,37 @@ def compare_query_to_library(papers, known_papers, indices, author_aff, orcids):
     )
 
 
-def remove_excess_papers_from_library(excess_papers, library: Library):
+def remove_excess_papers_from_library(
+    excess_papers, library: Library, console: Console | None = None
+):
     """Interactively remove excess papers from the library.
 
     Args:
         excess_papers: Papers in library but not in query results
         library: ADS Library instance
-
-    Returns:
-        List of papers to print if 'just print' option was selected
+        console: Console instance for output
     """
+    if console is None:
+        console = Console()
+
     if not excess_papers:
         return []
 
-    res = qs.select(
-        f"WARNING: {len(excess_papers)} papers are in the library, but not in your search. Select whether to REMOVE them:",
-        choices=["yes to all", "no to all", "choose each", "just print"],
-    ).ask()
-
-    papers_to_print = []
-    if res == "yes to all":
-        remove = [p.bibcode for p in excess_papers]
-    elif res == "no to all":
-        remove = []
-    elif res == "just print":
-        papers_to_print = excess_papers
-        remove = []
-    else:
-        remove = []
-        for p in excess_papers:
-            res = qs.select(
-                f"{','.join(p.author)}: {p.title[0]} ({p.year})",
-                choices=["yes", "no"],
-                default="yes",
-            ).ask()
-            if res == "yes":
-                remove.append(p.bibcode)
+    console.print(
+        "[bold underline]The following papers are in your library but did not come up in the query results.[/]\n"
+    )
+    remove = []
+    for p in excess_papers:
+        res = qs.select(
+            f"Remove the following?: {','.join(p.author[:3])}: {p.title[0]} ({p.year})?",
+            choices=["yes", "no"],
+            default="yes",
+        ).ask()
+        if res == "yes":
+            remove.append(p.bibcode)
 
     if remove:
         library.remove_documents(remove)
-
-    return papers_to_print
 
 
 def add_new_papers_to_library(

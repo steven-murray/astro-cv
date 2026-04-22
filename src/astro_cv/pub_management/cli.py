@@ -234,6 +234,7 @@ def refresh_cache(repo: cyclopts.types.ExistingDirectory):
                     oldcount,
                     p.citation_count,
                     p.citation_count - oldcount,
+                    p.title[0],
                 )
 
         console.print(
@@ -250,9 +251,9 @@ def refresh_cache(repo: cyclopts.types.ExistingDirectory):
             top_increases = sorted(
                 new_citations.items(), key=lambda x: x[1][2], reverse=True
             )[:5]
-            for bibcode, (old_count, new_count, diff) in top_increases:
+            for bibcode, (old_count, new_count, diff, title) in top_increases:
                 console.print(
-                    f"  - [dim]{bibcode}:[/dim] {old_count} -> {new_count} ([green]+{diff}[/green])"
+                    f"  - [dim]{bibcode}:[/dim] {old_count} -> {new_count} ([green]+{diff}[/green]) - {title}"
                 )
 
         new_papers = [p for p in papers if p.bibcode not in cachepubs]
@@ -329,12 +330,7 @@ def manage(
     )
 
     # Update library interactively
-    papers_to_print = remove_excess_papers_from_library(excess_papers, library)
-    if papers_to_print:
-        for p in papers_to_print:
-            console.print(
-                f"  [dim]{','.join(p.author)}:[/dim] {p.title[0]} [cyan]({p.year})[/cyan] / {p.aff} {p.orcid_pub}"
-            )
+    remove_excess_papers_from_library(excess_papers, library)
 
     if new_papers:
         console.print(
