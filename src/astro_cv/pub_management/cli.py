@@ -330,12 +330,7 @@ def manage(
     )
 
     # Update library interactively
-    papers_to_print = remove_excess_papers_from_library(excess_papers, library)
-    if papers_to_print:
-        for p in papers_to_print:
-            console.print(
-                f"  [dim]{','.join(p.author)}:[/dim] {p.title[0]} [cyan]({p.year})[/cyan] / {p.aff} {p.orcid_pub}"
-            )
+    remove_excess_papers_from_library(excess_papers, library)
 
     if new_papers:
         console.print(

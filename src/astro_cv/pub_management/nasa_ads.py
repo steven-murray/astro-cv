@@ -237,9 +237,7 @@ def remove_excess_papers_from_library(
     Args:
         excess_papers: Papers in library but not in query results
         library: ADS Library instance
-
-    Returns:
-        List of papers to print if 'just print' option was selected
+        console: Console instance for output
     """
     if console is None:
         console = Console()
