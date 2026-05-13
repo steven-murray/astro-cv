@@ -68,12 +68,14 @@ class PublicationList:
     # Settings from TOML
     library: str
     surname: str
+    alias: str
 
     publications: Union[tuple[Publication, ...], list, tuple] = attrs.field(
         factory=tuple, converter=_to_tuple_of_pubs
     )
 
-    students: list[str] = attrs.field(factory=list)
+    students: list[dict] = attrs.field(factory=list)
+    corresponding_author_bibcodes: list[str] = attrs.field(factory=list)
     do_proceedings: bool = False
     top_n: int = 4
     alphabet_n: int = 12
@@ -129,8 +131,12 @@ class PublicationList:
 
         return cls(
             publications=tuple(),  # Will be populated by connector
-            library=settings.get("library", ""),
-            surname=settings.get("surname", ""),
+            library=settings["library"],
+            surname=settings["surname"],
+            alias=settings["alias"],
+            corresponding_author_bibcodes=settings.get(
+                "corresponding_author_bibcodes", []
+            ),
             students=settings.get("students", []),
             do_proceedings=settings.get("do_proceedings", False),
             top_n=settings.get("top_n", 4),

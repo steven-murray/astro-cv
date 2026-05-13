@@ -6,6 +6,7 @@ from typing import Any
 import gspread
 import logging
 from appdirs import user_config_dir
+import datetime
 
 # Import dataclasses from their respective sections
 from astro_cv.sections.awards_and_scholarships import AwardsAndScholarships, AwardsEntry
@@ -205,7 +206,7 @@ class DataConnector:
                 Name=row["Name"],
                 City=row["City"],
                 Country=row["Country"],
-                StartDate=row["StartDate"],
+                StartDate=datetime.datetime.strptime(row["StartDate"], "%d/%m/%Y"),
                 URL=row["URL"],
                 Awards=row["Awards"],
                 Type=row["Type of contribution"],
@@ -226,7 +227,7 @@ class DataConnector:
                 Name=row["Name"],
                 City=row["Location"],
                 Country="",
-                StartDate=row["Date"],
+                StartDate=datetime.datetime.strptime(row["Date"], "%d/%m/%Y"),
                 URL=row["TalkURL"],
             )
             for row in seminars_data
@@ -243,7 +244,7 @@ class DataConnector:
                     Name=row["Name"],
                     City=row["Location"],
                     Country="",
-                    StartDate=row["Date"],
+                    StartDate=datetime.datetime.strptime(row["Date"], "%d/%m/%Y"),
                     URL=row["TalkURL"],
                 )
                 for row in local_data

@@ -95,7 +95,7 @@ class DataConnector:
             bibcode=article.bibcode,
             citation_count=article.citation_count or 0,
             refereed="REFEREED" in article.property
-            if hasattr(article, "properties")
+            if hasattr(article, "property")
             else False,
             orcid_pub=article.orcid_pub if hasattr(article, "orcid_pub") else None,
             aff=getattr(article, "aff", []),

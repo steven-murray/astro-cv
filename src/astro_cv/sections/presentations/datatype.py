@@ -3,6 +3,7 @@
 import tomllib
 from pathlib import Path
 import attrs
+import datetime
 
 
 @attrs.define
@@ -13,7 +14,7 @@ class PresentationEntry:
     Name: str
     City: str
     Country: str
-    StartDate: str
+    StartDate: datetime.datetime
     URL: str = ""
     Awards: str = ""
     Type: str = "Talk"

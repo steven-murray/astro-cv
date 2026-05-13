@@ -5,7 +5,7 @@ from astro_cv.pub_management import cli as pub_cli
 from pathlib import Path
 import logging
 from rich.logging import RichHandler
-
+from typing import Literal
 
 handler = RichHandler()
 logging.basicConfig(
@@ -22,6 +22,7 @@ app = cyclopts.App(
 def cv(
     profile: cyclopts.types.ExistingDirectory,
     output: cyclopts.types.ExistingDirectory = Path("outputs"),
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO",
 ):
     """Generate CV and publication list from configuration.
 
@@ -40,6 +41,7 @@ def cv(
     """
     from astro_cv import makecv
 
+    logger.setLevel(log_level.upper())
     makecv.main(profile, output_dir=output)
 
 

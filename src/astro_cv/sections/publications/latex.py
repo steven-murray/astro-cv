@@ -1,16 +1,19 @@
 """LaTeX generation for publications section."""
 
 from datetime import datetime
-
+import logging
 import ads
 
 from astro_cv.formats.latex import myformat
+from .datatype import Publication, PublicationList
 
 now = datetime.now()
 BLANK = "\n\n"
 
+logger = logging.getLogger(__name__)
 
-def create(pub_list):
+
+def create(pub_list: PublicationList) -> str:
     """Generate LaTeX for publications section using PublicationList data."""
     url = rf"https://ui.adsabs.harvard.edu/public-libraries/{pub_list.library}"
 
@@ -32,7 +35,7 @@ def create(pub_list):
     for p in pub_list.publications:
         if p.doctype == "inproceedings":
             confproc.append(p)
-        elif p.doctype == "article" or (
+        elif (p.doctype == "article" and p.refereed) or (
             p.doctype == "eprint" and p.bibcode in pub_list.accepted
         ):
             papers.append(p)
@@ -88,12 +91,12 @@ def create(pub_list):
     out += r"Key: \faFile*~\ Papers, \faPen\ Citations, \faEye\ Reads (on NASA ADS)"
     out += BLANK
 
-    def write_paper(paper):
+    def write_paper(paper: Publication) -> str:
         """Format a single paper entry."""
         auth = list(paper.authors)
         for i, a in enumerate(auth):
             if pub_list.surname in a:
-                auth[i] = r"\textbf{" + a + "}"
+                auth[i] = r"\textbf{" + pub_list.alias + "}"
 
         if len(paper.authors) > 4:
             authors = ", ".join(auth[:3]) + " et. al."
@@ -134,14 +137,14 @@ def create(pub_list):
         )
         return out + rest
 
-    def author_number(p):
+    def author_number(p: Publication):
         """Get the author number (1-indexed position) of surname in paper."""
         for i, auth in enumerate(p.authors):
             if auth.startswith(pub_list.surname):
                 break
         return i + 1
 
-    def is_important_author(paper):
+    def is_important_author(paper: Publication):
         """
         Check if this paper is one that you're an important author of, other than first author.
         """
@@ -179,6 +182,12 @@ def create(pub_list):
         these = [p for p in papers if condition(p)]
         papers = [p for p in papers if not condition(p)]
 
+        for p in these:
+            logger.debug(f"Adding paper '{p}' to section '{label}'")
+
+        for p in papers:
+            logger.debug(f"Not adding paper '{p}' to section '{label}'")
+
         out = BLANK if resume else ""
         if these:
             cite_count = sum(p.citation_count for p in these)
@@ -206,24 +215,37 @@ def create(pub_list):
     # First author
     _out, papers = write_subset(
         papers,
-        "First author papers",
-        lambda p: pub_list.surname in p.authors[0],
+        "First/Corresponding author papers",
+        lambda p: (
+            pub_list.surname in p.authors[0]
+            or p.bibcode in pub_list.corresponding_author_bibcodes
+        ),
         resume=False,
     )
     out += _out
 
+    def is_a_student_paper(p: Publication) -> bool:
+        """Check if this paper is one where a student of mine is first author."""
+        for student in pub_list.students:
+            if (
+                student["name"] in p.authors[0]
+                and student["years"][0] <= p.year <= student["years"][1]
+            ):
+                return True
+        return False
+
     # Student's papers
     _out, papers = write_subset(
         papers,
-        "Supervised papers by my students",
-        lambda p: any(pp in p.authors[0] for pp in pub_list.students),
+        "Co-authored w/ students I supervised/mentored",
+        is_a_student_paper,
     )
     out += _out
 
     # "Important" author
     _out, papers = write_subset(
         papers,
-        "Papers with significant contribution to analysis",
+        "Significant contribution to analysis",
         is_important_author,
     )
     out += _out

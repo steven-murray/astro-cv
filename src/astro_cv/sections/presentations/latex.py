@@ -1,6 +1,5 @@
 """Generate LaTeX for presentations section."""
 
-import datetime
 from astro_cv.formats.latex import myformat
 from .datatype import Presentation, PresentationEntry
 
@@ -29,10 +28,10 @@ def create(data: Presentation) -> str:
 
         for talk in sorted(
             talk_list,
-            key=lambda x: int(x.StartDate.strip("/")[-1]) if x.StartDate else 0,
+            key=lambda x: x.StartDate,
             reverse=True,
         ):
-            date = datetime.datetime.strptime(talk.StartDate, "%d/%m/%Y")
+            date = talk.StartDate
 
             # Format title with optional URL
             if talk.URL:
@@ -76,10 +75,10 @@ def create(data: Presentation) -> str:
 
         for talk in sorted(
             data.seminars,
-            key=lambda x: int(x.StartDate.strip("/")[-1]) if x.StartDate else 0,
+            key=lambda x: x.StartDate,
             reverse=True,
         ):
-            date = datetime.datetime.strptime(talk.StartDate, "%d/%m/%Y")
+            date = talk.StartDate
 
             if talk.URL:
                 title = myformat(
@@ -124,7 +123,7 @@ def create(data: Presentation) -> str:
             date_str = talk.StartDate
 
             if date_str:
-                date = datetime.datetime.strptime(talk.StartDate, "%d/%m/%Y")
+                date = talk.StartDate
                 date_str = date.strftime("%b %Y")
 
             if talk.URL:
