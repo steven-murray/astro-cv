@@ -3,7 +3,7 @@
 from astro_cv.formats.latex import myformat
 from .datatype import SoftwareList
 
-BLANK = "\n\n"
+BLANK = "\n\n\\par\\medskip\n\n"
 
 
 def create(software_list: SoftwareList) -> str:
@@ -16,7 +16,12 @@ def create(software_list: SoftwareList) -> str:
             software_list.organizations,
             key=lambda o: o.total_contributions,
             reverse=True,
-        )
+        )[: software_list.max_orgs]
+        orgs_by_contributions = [
+            org
+            for org in orgs_by_contributions
+            if org.total_contributions >= software_list.min_org_contributions
+        ]
 
         out += r"\textbf{Organizations}"
         out += BLANK

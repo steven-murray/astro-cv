@@ -3,6 +3,7 @@
 import contextlib
 import importlib
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -47,6 +48,27 @@ def myformat(string, *args, escape_amp=True, **kwargs):
     return custom_format(string, ["<% ", " %>"], *args, **kwargs)
 
 
+def format_year_range(
+    start_year: int, end_year: int | None = None, current: str = r"\phantom{0000}"
+) -> str:
+    if end_year in (None, 0):
+        return f"{start_year} -- {current}"
+    if start_year == end_year:
+        return str(start_year)
+    return f"{start_year} -- {end_year}"
+
+
+def normalize_year_range(text: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        start = match.group(1)
+        end = match.group(2)
+        if start == end:
+            return start
+        return f"{start} -- {end}"
+
+    return re.sub(r"\b(\d{4})\s*(?:-|--|–|—)\s*(\d{4})\b", replace, text)
+
+
 def write_section(section_name, data):
     section_key = section_name.replace("-", "_")
     section_module = importlib.import_module(f"astro_cv.sections.{section_key}")
@@ -54,10 +76,16 @@ def write_section(section_name, data):
     # Render section to LaTeX
     section_latex = section_module.create(data)
 
-    section_title = section_name.replace("-", " ").title()
-    out = r"\section{%s}%%" % section_title
-    out += "\n\t"
-    out += "\n\t".join(section_latex.split("\n"))
+    # Modules can set SECTION_TITLE = False to suppress the margin heading and
+    # its associated vertical space (e.g. self-explanatory design elements).
+    show_title = getattr(section_module, "SECTION_TITLE", True)
+    if show_title:
+        section_title = section_name.replace("-", " ").title()
+        out = r"\section{%s}%%" % section_title
+        out += "\n\t"
+        out += "\n\t".join(section_latex.split("\n"))
+    else:
+        out = "\n".join(section_latex.split("\n"))
     out += "\n\n"
     return out
 

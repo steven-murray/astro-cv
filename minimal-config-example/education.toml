@@ -4,6 +4,7 @@
 keep_undergrad = true
 keep_secondary = false
 keep_undergrad_courses = false
+keep_postgrad_courses = true
 
 [[institutions]]
 name = "Example University"

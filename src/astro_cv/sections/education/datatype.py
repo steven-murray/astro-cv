@@ -56,6 +56,7 @@ class Education:
     keep_undergrad: bool = True
     keep_secondary: bool = False
     keep_undergrad_courses: bool = False
+    keep_postgrad_courses: bool = True
 
     @classmethod
     def read_toml(cls, path: Path | str) -> Self:
@@ -103,6 +104,7 @@ class Education:
             keep_undergrad=settings.get("keep_undergrad", True),
             keep_secondary=settings.get("keep_secondary", False),
             keep_undergrad_courses=settings.get("keep_undergrad_courses", False),
+            keep_postgrad_courses=settings.get("keep_postgrad_courses", True),
         )
 
     def write_toml(self, path: Path | str) -> None:
@@ -114,6 +116,7 @@ class Education:
                 "keep_undergrad": self.keep_undergrad,
                 "keep_secondary": self.keep_secondary,
                 "keep_undergrad_courses": self.keep_undergrad_courses,
+                "keep_postgrad_courses": self.keep_postgrad_courses,
             },
             "institutions": [
                 {

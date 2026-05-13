@@ -20,12 +20,18 @@ class AcademicExperienceEntry(ABC):
     end_day: int | None = None
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict) -> Self | None:
         """Create from dictionary, handling optional fields."""
 
         # Deal with dates consistently.
         if "year" in data:
             data["start_year"] = data.pop("year")
+            data["end_year"] = data[
+                "start_year"
+            ]  # Assume same year if only one date provided
+        if "startyear" in data:
+            data["start_year"] = data.pop("startyear")
+            data["end_year"] = data.pop("endyear")
         if "startdate" in data:
             start_date = data.pop("startdate")
             parts = start_date.split("/")
@@ -47,10 +53,29 @@ class AcademicExperienceEntry(ABC):
             date = data.pop("date")
             parts = date.split("/")
             data["start_year"] = int(parts[-1])
+            data["end_year"] = data[
+                "start_year"
+            ]  # Assume same year if only one date provided
             if len(parts) > 1:
                 data["start_month"] = int(parts[-2])
+                data["end_month"] = data["start_month"]
             if len(parts) > 2:
                 data["start_day"] = int(parts[-3])
+                data["end_day"] = data["start_day"]
+
+        # Some upstream sheets can carry an empty column header; ignore it.
+        allowed_fields = {field.name for field in attrs.fields(cls)}
+        data = {
+            key: value
+            for key, value in data.items()
+            if key and key.strip() and key in allowed_fields
+        }
+
+        required_fields = {
+            field.name for field in attrs.fields(cls) if field.default is attrs.NOTHING
+        }
+        if any(field not in data for field in required_fields):
+            return None
 
         return cls(**data)
 

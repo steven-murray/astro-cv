@@ -61,6 +61,8 @@ class SoftwareList:
     github_user: str = ""
     max_repos: int = 10
     max_repos_collab: int = 10
+    max_orgs: int = 5
+    min_org_contributions: int = 20
     blacklist_orgs: list[str] = attrs.field(factory=list)
     blacklist_repos: list[str] = attrs.field(factory=list)
     original_codes: list[str] = attrs.field(factory=list)
@@ -86,6 +88,8 @@ class SoftwareList:
             blacklist_repos=settings.get("blacklist_repos", []),
             original_codes=settings.get("original_codes", []),
             min_contributions=settings.get("min_contributions", 1),
+            max_orgs=settings.get("max_orgs", 5),
+            min_org_contributions=settings.get("min_org_contributions", 20),
         )
 
     def write_toml(self, path: Path | str) -> None:

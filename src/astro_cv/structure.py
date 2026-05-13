@@ -12,7 +12,7 @@ document = r"""
 \begin{document}
 \setlist{itemsep=0.1em}
 
-\makeheading{{%doctype%} for {%firstname%} {%surname%}}
+\makeheading{{%doctype%} for {%firstname%} {%surname%}}{{%compiledate%}}
 
 {%body%}
 
@@ -118,7 +118,10 @@ document_setup = r"""
             linkcolor=lightblue,urlcolor=lightblue,
             anchorcolor=lightblue,citecolor=lightblue}
 
-\usepackage[shortlabel]{enumitem}
+\usepackage{enumitem}
+
+% Profile summary box
+\usepackage[most]{tcolorbox}
 
 % \newcounter{itemc}
 %%%%%%%%%%%%%%%%%%%%%%%% End Document Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,14 +132,16 @@ helper_commands = r"""
 
 % The title (name) with a horizontal rule under it
 %
-% Usage: \makeheading{name}
+% Usage: \makeheading{name}{right_text}
 %
 % Place at top of document. It should be the first thing.
 
-\newcommand{\makeheading}[1]%
+\newcommand{\makeheading}[2]%
         {\hspace*{-\marginparsep minus \marginparwidth}%
          \begin{minipage}[t]{\textwidth+\marginparwidth+\marginparsep}%
-                {\large \bfseries #1}\\[-0.15\baselineskip]%
+                \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l r}%
+                {\large \bfseries #1} & \makebox[1.9in][r]{\normalsize #2}\\
+                \end{tabular*}\\[-0.15\baselineskip]%
                  \rule{\columnwidth}{1pt}%
          \end{minipage}}
 
@@ -147,9 +152,9 @@ helper_commands = r"""
          \marginpar{
          \raggedright \scshape #1}#2}
 
-% An itemize-style list with lots of space between items
-\newenvironment{outerlist}[1][\enskip\textbullet]%
-        {\begin{enumerate}[#1]}{\end{enumerate}%
+% A label-free list with lots of space between items
+\newenvironment{outerlist}%
+        {\begin{itemize}[leftmargin=0pt,label={},topsep=0pt,partopsep=0pt,parsep=0pt,itemsep=0pt]}{\end{itemize}%
          \vspace{-.6\baselineskip}}
 
 % An itemize-style list with little space between items

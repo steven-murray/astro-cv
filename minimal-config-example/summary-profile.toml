@@ -1,0 +1,11 @@
+# Summary Profile
+# A short paragraph displayed in a highlighted box near the top of the CV.
+# This text should introduce you professionally in 2-4 sentences.
+
+text = """
+Researcher in observational and theoretical cosmology with a focus on 21-cm intensity
+mapping, Bayesian inference, and open-source scientific software. Experienced in
+leading international collaborations and developing high-performance simulation
+and analysis pipelines. Passionate about reproducible science and making advanced
+computational tools accessible to the community.
+"""

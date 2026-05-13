@@ -1,8 +1,14 @@
 """Generate LaTeX for professional experience section."""
 
-from astro_cv.formats.latex import myformat
+from astro_cv.formats.latex import myformat, format_year_range
 from .datatype import ProfessionalExperience
 import attrs
+
+
+def _location(job) -> str:
+    parts = [job.organisation, job.city, job.state]
+    parts = [part for part in parts if part]
+    return ", ".join(parts)
 
 
 def create(data: ProfessionalExperience) -> str:
@@ -20,28 +26,33 @@ def create(data: ProfessionalExperience) -> str:
     """
     jobs = data.filtered_jobs()
     out = []
+    backslash = "\\"
+    linebreak = backslash * 2
 
     for job in jobs:
         # Format years
-        if job.end_year == 0:
-            year_str = myformat(r"<% start %> -- present", start=str(job.start_year))
-        elif job.start_year == job.end_year:
-            year_str = str(job.start_year)
-        else:
-            year_str = myformat(
-                r"<% start %> -- <% end %>",
-                start=str(job.start_year),
-                end=str(job.end_year),
+        year_str = format_year_range(job.start_year, job.end_year)
+
+        preformat = "\n".join(
+            [
+                "%",
+                f"        {backslash}begin{{tabularx}}{{{backslash}linewidth}}{{@{{}}X r@{{}}}}",
+                f"        {backslash}textbf{{<% title %>}} & {backslash}textbf{{<% dates_ %>}} {linebreak}",
+                f"        <% location %> & {linebreak}",
+                f"        {backslash}end{{tabularx}}",
+                "",
+                f"        {backslash}blankline",
+                "",
+                "        ",
+            ]
+        )
+        out.append(
+            myformat(
+                preformat,
+                dates_=year_str,
+                location=_location(job),
+                **attrs.asdict(job),
             )
-
-        preformat = r"""%
-        \textbf{<% organisation %>}, <% city %>, <% state %>
-
-        <% title %>, (<% dates_ %>)
-
-        \blankline
-
-        """
-        out.append(myformat(preformat, dates_=year_str, **attrs.asdict(job)))
+        )
 
     return "\n".join(out)

@@ -5,6 +5,7 @@ import os
 import tomllib
 from pathlib import Path
 import logging
+from datetime import datetime
 from astro_cv.formats.latex import compile_latex, write_section
 from astro_cv.structure import document
 from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
@@ -114,6 +115,7 @@ def main(config_dir: Path, output_dir: Path = Path("outputs")):
     # Initialize document with name
     doc = document.replace("{%firstname%}", contact_info.personal.firstname)
     doc = doc.replace("{%surname%}", contact_info.personal.surname)
+    doc = doc.replace("{%compiledate%}", datetime.now().strftime("%d %b %Y"))
 
     body = ""
     publist = ""

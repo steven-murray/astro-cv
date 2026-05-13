@@ -1,7 +1,28 @@
 """Generate LaTeX for presentations section."""
 
+import re
+
 from astro_cv.formats.latex import myformat
 from .datatype import Presentation, PresentationEntry
+
+
+def _href(url: str, text: str) -> str:
+    """Build a URL-safe hyperlink for presentation titles."""
+    url = url.replace("&", r"\&").replace("%", r"\%")
+    text = text.replace("&", r"\&").replace("%", r"\%")
+    return rf"\href{{{url}}}{{{text}}}"
+
+
+def _normalize_title(talk: PresentationEntry) -> str:
+    """Normalize talk titles and embedded links into safe LaTeX."""
+    if talk.URL:
+        return _href(talk.URL, talk.Title)
+
+    href_match = re.fullmatch(r"\\href\{([^}]*)\}\{(.+)\}", talk.Title)
+    if href_match:
+        return _href(href_match.group(1), href_match.group(2))
+
+    return talk.Title
 
 
 def create(data: Presentation) -> str:
@@ -34,12 +55,7 @@ def create(data: Presentation) -> str:
             date = talk.StartDate
 
             # Format title with optional URL
-            if talk.URL:
-                title = myformat(
-                    r"\href{<% URL %>}{<% Title %>}", URL=talk.URL, Title=talk.Title
-                )
-            else:
-                title = talk.Title
+            title = _normalize_title(talk)
 
             # Format awards if present
             prize = ""
@@ -80,12 +96,7 @@ def create(data: Presentation) -> str:
         ):
             date = talk.StartDate
 
-            if talk.URL:
-                title = myformat(
-                    r"\href{<% URL %>}{<% Title %>}", URL=talk.URL, Title=talk.Title
-                )
-            else:
-                title = talk.Title
+            title = _normalize_title(talk)
 
             out.append(
                 myformat(
@@ -126,12 +137,7 @@ def create(data: Presentation) -> str:
                 date = talk.StartDate
                 date_str = date.strftime("%b %Y")
 
-            if talk.URL:
-                title = myformat(
-                    r"\href{<% URL %>}{<% Title %>}", URL=talk.URL, Title=talk.Title
-                )
-            else:
-                title = talk.Title
+            title = _normalize_title(talk)
 
             out.append(
                 myformat(

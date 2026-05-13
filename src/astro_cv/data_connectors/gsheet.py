@@ -104,6 +104,9 @@ class DataConnector:
         list[dict]
             List of dictionaries, one per row.
         """
+        if self.data is None:
+            raise RuntimeError("Google Sheets connection is not initialized")
+
         try:
             worksheet = self.data.worksheet(worksheet_name)
             rows = worksheet.get_all_values()
@@ -331,22 +334,26 @@ class DataConnector:
                     if hasattr(self, f"get_{attr_name}"):
                         # If there's a specific method for this category, use it
                         method = getattr(self, f"get_{attr_name}")
-                        entries.append(method(row))
+                        entry = method(row)
+                        if entry is not None:
+                            entries.append(entry)
                     else:
                         cls = getattr(academic_experience, entry_type)
-                        entries.append(cls.from_dict(row))
+                        entry = cls.from_dict(row)
+                        if entry is not None:
+                            entries.append(entry)
 
                 all_entries[attr_name] = entries
 
         return AcademicExperience(**all_entries)
 
-    def get_collaborations(self, row: dict) -> CollaborationEntry:
+    def get_collaborations(self, row: dict) -> CollaborationEntry | None:
         """Get collaborations data from the 'Collaborations' worksheet."""
         if "ci" in row:
             row["principal_investigator"] = row.pop("ci")
         return CollaborationEntry.from_dict(row)
 
-    def get_supervision(self, row: dict) -> SupervisionEntry:
+    def get_supervision(self, row: dict) -> SupervisionEntry | None:
         """Get supervision data from the 'Supervision' worksheet."""
         row["co_supervised"] = (
             True if row.get("co_supervised", "No").lower() == "yes" else False

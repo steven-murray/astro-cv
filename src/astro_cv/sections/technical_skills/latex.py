@@ -64,4 +64,4 @@ def create(data: TechnicalSkill) -> str:
             f"Experience with {colonlist_to_sentence(data.SoftwareUsed)} programs and frameworks."
         )
 
-    return "\n\n".join(out)
+    return "\n\n\\par\\medskip\n\n".join(out)

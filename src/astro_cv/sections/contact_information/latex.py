@@ -15,20 +15,11 @@ def create(config: ContactInformation) -> str:
         LaTeX string for the contact information section
     """
     contact_information = r"""%
-    \newlength{\rcollength}\setlength{\rcollength}{3.5in}%
-    %
-    \href{<% institution_url %>}{<% department_name %>}
-
-    \begin{tabular}[t]{@{}p{\textwidth-\rcollength -0.2in}p{\rcollength}}
-     <% institution_name %>,     &  \hfill <% phone_number %>~\faPhone \\
-     <% institution_street %>,	 &  \hfill \href{mailto:<% email %>}{<% email %>}~\faEnvelopeO \\
-     <% institution_location %>, <% institution_country %> &
-    \end{tabular}
-
-    \vspace{5mm}
-
-    \noindent\begin{tabularx}{\textwidth}{<% ncols %>}
-        <% websites %>
+    \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X@{\hspace{1.25em}}>{\raggedleft\arraybackslash}p{0.40\textwidth}@{}}
+    \href{<% institution_url %>}{<% department_name %>} & \href{mailto:<% email %>}{<% email %>}~\faEnvelope\\
+    <% institution_name %> & <% website_1 %>\\
+    <% institution_street %> & <% website_2 %>\\
+    <% institution_location %>, <% institution_country %> & <% website_3 %>\\
     \end{tabularx}
     \vspace{2mm}
     """
@@ -39,34 +30,34 @@ def create(config: ContactInformation) -> str:
         webid = website.id
 
         if kind.lower() == "linkedin":
-            icon = website.icon or r"\faLinkedinSquare~"
+            icon = website.icon or r"\faLinkedinSquare"
             url = website.url or f"https://www.linkedin.com/in/{webid}"
         elif kind.lower() == "github":
-            icon = website.icon or r"\faGithub~"
+            icon = website.icon or r"\faGithub"
             url = website.url or f"https://github.com/{webid}/"
         elif kind.lower() == "orcid":
-            icon = website.icon or r"\faOrcid~"
+            icon = website.icon or r"\faOrcid"
             url = website.url or f"https://orcid.org/{webid}"
         elif kind.lower() == "web":
-            icon = website.icon or r"\faLaptop~"
+            icon = website.icon or r"\faLaptop"
             url = website.url
         elif kind:
-            icon = website.icon or r"\faLaptop~%s: " % kind
+            icon = website.icon or r"\faLaptop %s: " % kind
             url = website.url
         else:
-            icon = website.icon or r"\faLaptop~: "
+            icon = website.icon or r"\faLaptop: "
             url = website.url
 
-        wb[kind] = r"\href{%s}{%s\verb|%s|}" % (url, icon, webid or url)
+        if kind.lower() == "web":
+            label = webid or "Personal Website"
+        else:
+            label = webid or url
 
-    ncols = max(len(config.websites), 3)
-    websites = " \\".join(
-        " & ".join(f"<% {w.kind} %>" for w in ws[:ncols])
-        for ws in [
-            config.websites[i : i + ncols]
-            for i in range(0, len(config.websites), ncols)
-        ]
-    )
+        wb[kind] = r"\href{%s}{%s}\hspace{0.35em}%s" % (url, label, icon)
+
+    website_values = [wb[w.kind] for w in config.websites]
+    while len(website_values) < 3:
+        website_values.append("")
 
     out = myformat(
         contact_information,
@@ -77,10 +68,10 @@ def create(config: ContactInformation) -> str:
         institution_street=config.institution.street,
         institution_location=config.institution.location,
         institution_country=config.institution.country,
-        phone_number=config.personal.phone_number,
         email=config.personal.email,
-        ncols="Y" * ncols,
-        websites=websites,
+        website_1=website_values[0],
+        website_2=website_values[1],
+        website_3=website_values[2],
     )
 
     out = myformat(out, **wb)

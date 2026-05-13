@@ -1,6 +1,6 @@
 """LaTeX generation for education section."""
 
-from astro_cv.formats.latex import myformat
+from astro_cv.formats.latex import myformat, normalize_year_range
 
 from .datatype import Education, Institution, Degree, Supervisor
 
@@ -45,7 +45,7 @@ def _include_degree(config: Education, degree: Degree) -> bool:
 
 def _include_undergrad_courses(config: Education, degree: Degree) -> bool:
     if degree.level != "undergrad":
-        return True
+        return config.keep_postgrad_courses
     return config.keep_undergrad_courses
 
 
@@ -59,40 +59,29 @@ def create(config: Education) -> str:
             continue
 
         location = _format_location(inst)
-        if location:
-            header = myformat(
-                r"\href{<% url %>}{\textbf{<% name %>}}, <% location %>",
-                url=inst.url,
-                name=inst.name,
-                location=location,
-            )
-        else:
-            header = myformat(
-                r"\href{<% url %>}{\textbf{<% name %>}}",
-                url=inst.url,
-                name=inst.name,
-            )
-
-        out.append(header)
         out.append(r"\begin{outerlist}")
 
         for degree in degrees:
             subject = _format_subject(degree)
+            degree_label = degree.title
             if subject:
-                line = myformat(
-                    r"\item[] <% title %>, <% subject %> (<% years %>)",
-                    title=degree.title,
-                    subject=subject,
-                    years=degree.years,
-                )
-            else:
-                line = myformat(
-                    r"\item[] <% title %> (<% years %>)",
-                    title=degree.title,
-                    years=degree.years,
-                )
+                degree_label = f"{degree.title}, {subject}"
+            years = normalize_year_range(degree.years)
 
+            line = myformat(
+                r"\item[] \textbf{<% degree_label %>} \hfill \textbf{<% years %>}\\",
+                degree_label=degree_label,
+                years=years,
+            )
             out.append(line)
+            out.append(
+                myformat(
+                    r"\href{<% url %>}{<% institution %>}, <% location %>",
+                    url=inst.url,
+                    institution=inst.name,
+                    location=location,
+                )
+            )
 
             details = []
             if degree.thesis_title:
@@ -143,7 +132,9 @@ def create(config: Education) -> str:
                 out.extend(details)
                 out.append(r"\end{innerlist}")
 
+            out.append(r"\vspace{0.45em}")
+
         out.append(r"\end{outerlist}")
-        out.append(r"\blankline")
+        out.append(r"\vspace{2mm}")
 
     return "\n".join(out)
