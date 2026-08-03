@@ -1,5 +1,6 @@
-from astro_cv.sections.publications import PublicationList as PubList
 from datetime import datetime
+
+from astro_cv.sections.publications import PublicationList as PubList
 
 
 def compute_h_index(pub_list: PubList) -> int:

@@ -1,8 +1,10 @@
 """Generate LaTeX for professional experience section."""
 
-from astro_cv.formats.latex import myformat, format_year_range
-from .datatype import ProfessionalExperience
 import attrs
+
+from astro_cv.formats.latex import format_year_range, myformat
+
+from .datatype import ProfessionalExperience
 
 
 def _location(job) -> str:

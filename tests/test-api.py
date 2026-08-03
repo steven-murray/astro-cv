@@ -1,4 +1,4 @@
-from gql import gql, Client
+from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
 GH = "token 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"

@@ -1,10 +1,9 @@
 """Data types for academic references section."""
 
+import tomllib
 from pathlib import Path
-from typing import Optional
 
 import attrs
-import tomllib
 
 
 @attrs.define
@@ -22,7 +21,7 @@ class AcademicReferences:
     """Configuration for academic references section."""
 
     references: list[Reference]
-    maxref: Optional[int] = None
+    maxref: int | None = None
 
     @classmethod
     def read_toml(cls, path: Path) -> "AcademicReferences":

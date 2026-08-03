@@ -1,10 +1,12 @@
 """Module for publication statistics calculations."""
 
-from pathlib import Path
-from functools import cached_property
-import attrs
-from typing import Generator, Self
 import tomllib
+from collections.abc import Generator
+from functools import cached_property
+from pathlib import Path
+from typing import Self
+
+import attrs
 import tomli_w
 
 
@@ -63,7 +65,7 @@ class PubList:
     def __len__(self) -> int:
         return len(self.publications)
 
-    def __iter__(self) -> Generator[Publication, None, None]:
+    def __iter__(self) -> Generator[Publication]:
         return (p for p in self.publications)
 
     @cached_property

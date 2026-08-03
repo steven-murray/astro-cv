@@ -1,25 +1,26 @@
 """Google Sheets data connector for CV sections."""
 
+import datetime
+import logging
 import tomllib
 from pathlib import Path
 from typing import Any
-import gspread
-import logging
-from appdirs import user_config_dir
-import datetime
 
-# Import dataclasses from their respective sections
-from astro_cv.sections.awards_and_scholarships import AwardsAndScholarships, AwardsEntry
-from astro_cv.sections.technical_skills import TechnicalSkill
-from astro_cv.sections.presentations import Presentation, PresentationEntry
+import gspread
+from appdirs import user_config_dir
+
+from astro_cv.sections import academic_experience
 from astro_cv.sections.academic_experience import (
     AcademicExperience,
     CollaborationEntry,
     SupervisionEntry,
 )
-from astro_cv.sections import academic_experience
 
-from astro_cv.sections.press_releases import PressReleases, PressReleaseEntry
+# Import dataclasses from their respective sections
+from astro_cv.sections.awards_and_scholarships import AwardsAndScholarships, AwardsEntry
+from astro_cv.sections.presentations import Presentation, PresentationEntry
+from astro_cv.sections.press_releases import PressReleaseEntry, PressReleases
+from astro_cv.sections.technical_skills import TechnicalSkill
 
 logger = logging.getLogger(__name__)
 

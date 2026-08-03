@@ -1,12 +1,12 @@
 """Data source integrations for CV generation."""
 
 # Import DataConnector from each integration module
-from . import gsheet, ads, github, toml
+from . import ads, github, gsheet, toml
 
 __all__ = [
-    "gsheet",
     "ads",
     "github",
+    "gsheet",
     "toml",
 ]
 

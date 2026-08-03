@@ -3,6 +3,7 @@
 import re
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import Presentation, PresentationEntry
 
 

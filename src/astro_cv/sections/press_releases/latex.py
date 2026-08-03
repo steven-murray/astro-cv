@@ -1,8 +1,10 @@
 """Generate LaTeX for press releases section."""
 
 import datetime
+
 from astro_cv.formats.latex import myformat
-from .datatype import PressReleases, PressReleaseEntry
+
+from .datatype import PressReleaseEntry, PressReleases
 
 
 def create(data: PressReleases) -> str:

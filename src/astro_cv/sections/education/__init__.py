@@ -1,6 +1,6 @@
 """Education section."""
 
-from .datatype import Education, Institution, Degree, Supervisor
+from .datatype import Degree, Education, Institution, Supervisor
 from .latex import create
 
-__all__ = ["Education", "Institution", "Degree", "Supervisor", "create"]
+__all__ = ["Degree", "Education", "Institution", "Supervisor", "create"]

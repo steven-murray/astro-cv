@@ -1,10 +1,9 @@
 """Data types for contact information section."""
 
+import tomllib
 from pathlib import Path
-from typing import Optional
 
 import attrs
-import tomllib
 
 
 @attrs.define
@@ -14,7 +13,7 @@ class Website:
     url: str
     kind: str
     id: str
-    icon: Optional[str] = None
+    icon: str | None = None
 
 
 @attrs.define

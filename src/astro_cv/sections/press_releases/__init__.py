@@ -1,6 +1,6 @@
 """Press Releases section."""
 
-from .datatype import PressReleases, PressReleaseEntry
+from .datatype import PressReleaseEntry, PressReleases
 from .latex import create
 
-__all__ = ["PressReleases", "PressReleaseEntry", "create"]
+__all__ = ["PressReleaseEntry", "PressReleases", "create"]

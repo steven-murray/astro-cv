@@ -1,14 +1,15 @@
 """ADS (Astrophysics Data System) data connector for publications."""
 
+import logging
 from pathlib import Path
-from typing import Optional, Any
-from ads.libraries import Article
+from typing import Any
 
 import attrs
-from ads.libraries import Library
-from astro_cv.sections.publications import PublicationList, Publication
+from ads.libraries import Article, Library
+
+from astro_cv.sections.publications import Publication, PublicationList
+
 from .nasa_ads import obtain_library_papers
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class DataConnector:
     def __init__(
         self,
         library_id: str,
-        cache_path: Optional[Path | str] = None,
+        cache_path: Path | str | None = None,
     ):
         """Initialize ADS connector.
 

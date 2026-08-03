@@ -1,6 +1,7 @@
 """Generate LaTeX for research interests section."""
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import ResearchInterests
 
 

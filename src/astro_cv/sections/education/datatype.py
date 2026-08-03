@@ -1,10 +1,10 @@
 """Education section datatype."""
 
+import tomllib
 from pathlib import Path
 from typing import Self
 
 import attrs
-import tomllib
 import tomli_w
 
 

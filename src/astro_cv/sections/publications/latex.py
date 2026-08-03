@@ -1,10 +1,12 @@
 """LaTeX generation for publications section."""
 
-from datetime import datetime
 import logging
+from datetime import datetime
+
 import ads
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import Publication, PublicationList
 
 now = datetime.now()

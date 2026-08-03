@@ -2,7 +2,7 @@
 
 from astro_cv.formats.latex import myformat, normalize_year_range
 
-from .datatype import Education, Institution, Degree, Supervisor
+from .datatype import Degree, Education, Institution, Supervisor
 
 BLANK = "\n\n" + r"\blankline" + "\n\n"
 
