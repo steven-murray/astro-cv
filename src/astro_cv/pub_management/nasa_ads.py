@@ -17,13 +17,13 @@ In the end, it will only print out docs in the library itself.
 
 # TODO: ability to add orcid
 
-import ads
+import tomllib
 from datetime import datetime
 from pathlib import Path
 
+import ads
 import questionary as qs
 import tomli_w
-import tomllib
 from ads.libraries import Library
 from rich.console import Console
 

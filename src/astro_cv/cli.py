@@ -1,11 +1,13 @@
 """CLI entry point for astro-cv."""
 
-import cyclopts
-from astro_cv.pub_management import cli as pub_cli
-from pathlib import Path
 import logging
-from rich.logging import RichHandler
+from pathlib import Path
 from typing import Literal
+
+import cyclopts
+from rich.logging import RichHandler
+
+from astro_cv.pub_management import cli as pub_cli
 
 handler = RichHandler()
 logging.basicConfig(

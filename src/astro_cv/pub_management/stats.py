@@ -1,5 +1,6 @@
-from .datatypes import PubList
 from datetime import datetime
+
+from .datatypes import PubList
 
 
 def compute_h_index(pub_list: PubList) -> int:

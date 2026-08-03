@@ -1,6 +1,7 @@
 """LaTeX generation for software section."""
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import SoftwareList
 
 BLANK = "\n\n\\par\\medskip\n\n"

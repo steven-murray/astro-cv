@@ -1,10 +1,11 @@
 """Academic Experience section datatype."""
 
 import tomllib
-from pathlib import Path
-import attrs
-from typing import Literal, Self
 from abc import ABC
+from pathlib import Path
+from typing import Literal, Self
+
+import attrs
 
 
 @attrs.define(kw_only=True)

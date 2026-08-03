@@ -1,6 +1,6 @@
 """Professional experience section."""
 
-from .datatype import ProfessionalExperience, Job
+from .datatype import Job, ProfessionalExperience
 from .latex import create
 
-__all__ = ["ProfessionalExperience", "Job", "create"]
+__all__ = ["Job", "ProfessionalExperience", "create"]

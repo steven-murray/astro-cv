@@ -1,9 +1,12 @@
 """Generate LaTeX for academic experience section."""
 
-from astro_cv.formats.latex import myformat, format_year_range
-from .datatype import AcademicExperience, AcademicExperienceEntry
-import attrs
 from collections.abc import Sequence
+
+import attrs
+
+from astro_cv.formats.latex import format_year_range, myformat
+
+from .datatype import AcademicExperience, AcademicExperienceEntry
 
 
 def create(data: AcademicExperience) -> str:

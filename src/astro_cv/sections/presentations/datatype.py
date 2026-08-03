@@ -1,9 +1,10 @@
 """Presentations section datatype."""
 
+import datetime
 import tomllib
 from pathlib import Path
+
 import attrs
-import datetime
 
 
 @attrs.define

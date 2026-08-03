@@ -1,6 +1,7 @@
 """Generate LaTeX for summary profile section."""
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import SummaryProfile
 
 

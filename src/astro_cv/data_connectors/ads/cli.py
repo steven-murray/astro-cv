@@ -1,36 +1,36 @@
 """CLI commands for publication management."""
 
 import time
+import tomllib
 
 import cyclopts
-import tomllib
 from ads.exceptions import APIResponseError
 from ads.libraries import Library
 from rich.console import Console
+from termgraph import Args, BarChart, Colors, Data
 
-from termgraph import Data, Args, BarChart, Colors
+from astro_cv.sections.publications import PublicationList as PubList
 
 from .nasa_ads import (
     add_new_papers_to_library,
     build_query,
     compare_query_to_library,
     obtain_library_papers,
-    obtain_query_papers,
-    remove_excess_papers_from_library,
     obtain_library_papers_not_in_orcid,
-    write_library_cache,
+    obtain_query_papers,
     read_library_cache,
+    remove_excess_papers_from_library,
+    write_library_cache,
 )
-from astro_cv.sections.publications import PublicationList as PubList
 from .stats import (
+    average_citations,
+    average_citations_per_year,
+    citation_distribution,
     compute_h_index,
     compute_i10_index,
-    citation_distribution,
-    average_citations,
     median_citations,
-    total_citations,
-    average_citations_per_year,
     top_cited_papers,
+    total_citations,
 )
 
 console = Console()
@@ -71,7 +71,7 @@ def retry_on_timeout(func, *args, max_retries=3, **kwargs):
 
 
 def _draw_bar_chart(title: str, data: dict[str, int], color=Colors.Green) -> None:
-    chart_data = Data(data=list(data.values()), labels=[str(k) for k in data.keys()])
+    chart_data = Data(data=list(data.values()), labels=[str(k) for k in data])
 
     args = Args(
         width=console.width - 10,

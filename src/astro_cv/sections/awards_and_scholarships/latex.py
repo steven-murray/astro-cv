@@ -1,6 +1,7 @@
 """Generate LaTeX for awards and scholarships section."""
 
 from astro_cv.formats.latex import myformat
+
 from .datatype import AwardsAndScholarships
 
 

@@ -1,9 +1,10 @@
 """Publications section datatype."""
 
 import tomllib
-from pathlib import Path
 from functools import cached_property
-from typing import Self, Union
+from pathlib import Path
+from typing import Self
+
 import attrs
 import tomli_w
 
@@ -70,7 +71,7 @@ class PublicationList:
     surname: str
     alias: str
 
-    publications: Union[tuple[Publication, ...], list, tuple] = attrs.field(
+    publications: tuple[Publication, ...] | list | tuple = attrs.field(
         factory=tuple, converter=_to_tuple_of_pubs
     )
 

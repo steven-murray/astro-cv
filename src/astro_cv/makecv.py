@@ -1,14 +1,15 @@
 """Generate CV from modular sections - generic modular approach."""
 
 import importlib
+import logging
 import os
 import tomllib
-from pathlib import Path
-import logging
 from datetime import datetime
+from pathlib import Path
+
+from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
 from astro_cv.formats.latex import compile_latex, write_section
 from astro_cv.structure import document
-from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def initialize_data_connectors(data_connectors_config: dict) -> dict:
         connector_module = importlib.import_module(
             f"astro_cv.data_connectors.{connector_name}"
         )
-        DataConnector = getattr(connector_module, "DataConnector")
+        DataConnector = connector_module.DataConnector
 
         for k, v in dc_config.items():
             if isinstance(v, str) and v.startswith("env:"):

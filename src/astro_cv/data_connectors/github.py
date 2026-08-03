@@ -1,19 +1,19 @@
 """GitHub API data connector for software section."""
 
+import logging
 from datetime import datetime, timedelta
-from typing import Optional, Any
 from pathlib import Path
-from rich.progress import Progress
+from typing import Any
 
 import attrs
+from cache_to_disk import cache_to_disk
 from github import Github
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
-import logging
-from cache_to_disk import cache_to_disk
+from rich.progress import Progress
+
 from astro_cv.sections.software import SoftwareList
 from astro_cv.sections.software.datatype import Organization, Repository
-
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class DataConnector:
         )
         self.graphql_client = Client(transport=self.transport, execute_timeout=30)
 
-    def get_organizations(self, blacklist: Optional[list[str]] = None) -> dict:
+    def get_organizations(self, blacklist: list[str] | None = None) -> dict:
         """Get organizations that the user is a member of.
 
         Parameters
@@ -215,7 +215,7 @@ class DataConnector:
         return sorted(repos, key=lambda r: r.stargazers_count, reverse=True)
 
     def get_collaborative_repos(
-        self, min_contributions: int = 1, blacklist: Optional[list[str]] = None
+        self, min_contributions: int = 1, blacklist: list[str] | None = None
     ) -> list:
         """Get all repositories the user contributes to.
 
