@@ -18,7 +18,7 @@ In the end, it will only print out docs in the library itself.
 # TODO: ability to add orcid
 
 import tomllib
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import ads
@@ -26,7 +26,7 @@ import questionary as qs
 import tomli_w
 from ads.libraries import Library
 
-now = datetime.now()
+now = datetime.now(UTC)
 
 
 def get_author_index(authors: list[str], name: str) -> list[int]:
@@ -377,7 +377,10 @@ def write_library_cache(
         properties = {p.bibcode: p.property for p in papers}
 
     # Build the cache structure
-    cache_data = {"date_compiled": datetime.now().isoformat(), "publications": {}}
+    cache_data = {
+        "date_compiled": datetime.now(UTC).isoformat(),
+        "publications": {},
+    }
 
     for paper in papers:
         cache_data["publications"][paper.bibcode] = this = {

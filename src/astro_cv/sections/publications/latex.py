@@ -1,7 +1,7 @@
 """LaTeX generation for publications section."""
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import ads
 
@@ -9,7 +9,7 @@ from astro_cv.formats.latex import myformat
 
 from .datatype import Publication, PublicationList
 
-now = datetime.now()
+now = datetime.now(UTC).astimezone()
 BLANK = "\n\n"
 
 logger = logging.getLogger(__name__)
@@ -173,11 +173,8 @@ def create(pub_list: PublicationList) -> str:
         if i < pub_list.alphabet_n:
             # Not an alphabetical list at the end
             return False
-        if author_number(paper) > len(paper.authors) - i:
-            # My name is part of the alphabetical list
-            return False
-
-        return True
+        # My name is part of the alphabetical list
+        return author_number(paper) <= len(paper.authors) - i
 
     def write_subset(papers, label, condition, resume=True):
         """Write a subset of papers matching a condition."""

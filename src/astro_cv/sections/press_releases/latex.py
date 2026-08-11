@@ -32,7 +32,9 @@ def create(data: PressReleases) -> str:
         """Format a single press release entry."""
         # Parse date
         if entry.Date:
-            date = datetime.datetime.strptime(entry.Date, "%d/%m/%Y")
+            date = datetime.datetime.strptime(entry.Date, "%d/%m/%Y").replace(
+                tzinfo=datetime.UTC
+            )
             date_str = date.strftime("%b %Y")
 
         # Format title with optional link

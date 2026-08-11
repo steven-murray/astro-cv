@@ -4,7 +4,7 @@ import importlib
 import logging
 import os
 import tomllib
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
@@ -116,7 +116,10 @@ def main(config_dir: Path, output_dir: Path = Path("outputs")):
     # Initialize document with name
     doc = document.replace("{%firstname%}", contact_info.personal.firstname)
     doc = doc.replace("{%surname%}", contact_info.personal.surname)
-    doc = doc.replace("{%compiledate%}", datetime.now().strftime("%d %b %Y"))
+    doc = doc.replace(
+        "{%compiledate%}",
+        datetime.now(UTC).astimezone().strftime("%d %b %Y"),
+    )
 
     body = ""
     publist = ""
