@@ -4,7 +4,7 @@ import importlib
 import logging
 import os
 import tomllib
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 
 from astro_cv.data_connectors.toml import DataConnector as LocalTOMLConnector
