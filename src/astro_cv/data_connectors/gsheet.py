@@ -112,7 +112,7 @@ class DataConnector:
             worksheet = self.data.worksheet(worksheet_name)
             rows = worksheet.get_all_values()
             return lol_to_lod(rows)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any Sheets/network failure should degrade to empty data, not crash
             logger.error(f"Error reading worksheet '{worksheet_name}': {e}")
             return []
 
@@ -210,7 +210,9 @@ class DataConnector:
                 Name=row["Name"],
                 City=row["City"],
                 Country=row["Country"],
-                StartDate=datetime.datetime.strptime(row["StartDate"], "%d/%m/%Y"),
+                StartDate=datetime.datetime.strptime(
+                    row["StartDate"], "%d/%m/%Y"
+                ).replace(tzinfo=datetime.UTC),
                 URL=row["URL"],
                 Awards=row["Awards"],
                 Type=row["Type of contribution"],
@@ -231,7 +233,9 @@ class DataConnector:
                 Name=row["Name"],
                 City=row["Location"],
                 Country="",
-                StartDate=datetime.datetime.strptime(row["Date"], "%d/%m/%Y"),
+                StartDate=datetime.datetime.strptime(row["Date"], "%d/%m/%Y").replace(
+                    tzinfo=datetime.UTC
+                ),
                 URL=row["TalkURL"],
             )
             for row in seminars_data
@@ -248,7 +252,9 @@ class DataConnector:
                     Name=row["Name"],
                     City=row["Location"],
                     Country="",
-                    StartDate=datetime.datetime.strptime(row["Date"], "%d/%m/%Y"),
+                    StartDate=datetime.datetime.strptime(
+                        row["Date"], "%d/%m/%Y"
+                    ).replace(tzinfo=datetime.UTC),
                     URL=row["TalkURL"],
                 )
                 for row in local_data
@@ -356,9 +362,7 @@ class DataConnector:
 
     def get_supervision(self, row: dict) -> SupervisionEntry | None:
         """Get supervision data from the 'Supervision' worksheet."""
-        row["co_supervised"] = (
-            True if row.get("co_supervised", "No").lower() == "yes" else False
-        )
+        row["co_supervised"] = row.get("co_supervised", "No").lower() == "yes"
         return SupervisionEntry.from_dict(row)
 
     def get_press_releases(self) -> PressReleases:

@@ -42,7 +42,7 @@ def create(config: ContactInformation) -> str:
             icon = website.icon or r"\faLaptop"
             url = website.url
         elif kind:
-            icon = website.icon or r"\faLaptop %s: " % kind
+            icon = website.icon or rf"\faLaptop {kind}: "
             url = website.url
         else:
             icon = website.icon or r"\faLaptop: "
@@ -53,7 +53,7 @@ def create(config: ContactInformation) -> str:
         else:
             label = webid or url
 
-        wb[kind] = r"\href{%s}{%s}\hspace{0.35em}%s" % (url, label, icon)
+        wb[kind] = rf"\href{{{url}}}{{{label}}}\hspace{{0.35em}}{icon}"
 
     website_values = [wb[w.kind] for w in config.websites]
     while len(website_values) < 3:

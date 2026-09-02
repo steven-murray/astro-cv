@@ -1,7 +1,7 @@
 """GitHub API data connector for software section."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -65,7 +65,7 @@ def _filter_repos(
                     if total_contribs > 0
                     else 0,
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - one bad repo shouldn't abort the whole batch
                 logger.warning(f"Could not process {repo.name}: {e}")
 
     # Sort by contributions descending
@@ -181,10 +181,10 @@ class DataConnector:
             """
         )
 
-        one_year_ago = datetime.now() - timedelta(days=365)
+        one_year_ago = datetime.now(UTC) - timedelta(days=365)
         result = self.graphql_client.execute(
             query,
-            variable_values={"org_id": org_id, "from": f"{one_year_ago.isoformat()}Z"},
+            variable_values={"org_id": org_id, "from": one_year_ago.isoformat()},
         )
 
         return result["viewer"]["contributionsCollection"]
@@ -209,7 +209,7 @@ class DataConnector:
             try:
                 repo = self.gh.get_repo(repo_name)
                 repos.append(repo)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - one missing/inaccessible repo shouldn't abort the whole batch
                 logger.warning(f"Could not fetch {repo_name}: {e}")
 
         return sorted(repos, key=lambda r: r.stargazers_count, reverse=True)

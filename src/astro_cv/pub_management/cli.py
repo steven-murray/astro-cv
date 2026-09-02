@@ -58,15 +58,16 @@ def retry_on_timeout(func, *args, max_retries=3, **kwargs):
         try:
             return func(*args, **kwargs)
         except APIResponseError as e:
-            if "504" in str(e) or "Gateway Time-out" in str(e):
-                if attempt < max_retries - 1:
-                    wait_time = (attempt + 1) * 5  # Exponential backoff: 5s, 10s, 15s
-                    if console:
-                        console.print(
-                            f"[yellow]API timeout, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})[/yellow]"
-                        )
-                    time.sleep(wait_time)
-                    continue
+            if (
+                "504" in str(e) or "Gateway Time-out" in str(e)
+            ) and attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 5  # Exponential backoff: 5s, 10s, 15s
+                if console:
+                    console.print(
+                        f"[yellow]API timeout, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})[/yellow]"
+                    )
+                time.sleep(wait_time)
+                continue
             raise
 
 
