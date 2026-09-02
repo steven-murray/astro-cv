@@ -32,9 +32,9 @@ class Publication:
     @property
     def citations_per_year(self) -> float:
         """Citations per year."""
-        from datetime import datetime
+        from datetime import UTC, datetime
 
-        current_year = datetime.now().year
+        current_year = datetime.now(UTC).year
         years_since_pub = max(1, current_year - self.year)
         return self.citation_count / years_since_pub
 
@@ -42,7 +42,7 @@ class Publication:
 def _to_tuple_of_pubs(pubs: list | tuple | None) -> tuple[Publication, ...]:
     """Convert a list of publication dicts to a tuple of Publication objects."""
     if pubs is None or (isinstance(pubs, (list, tuple)) and len(pubs) == 0):
-        return tuple()
+        return ()
 
     return tuple(
         Publication(
@@ -131,7 +131,7 @@ class PublicationList:
         settings = data.get("settings", {})
 
         return cls(
-            publications=tuple(),  # Will be populated by connector
+            publications=(),  # Will be populated by connector
             library=settings["library"],
             surname=settings["surname"],
             alias=settings["alias"],
