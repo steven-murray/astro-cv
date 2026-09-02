@@ -377,10 +377,7 @@ def write_library_cache(
         properties = {p.bibcode: p.property for p in papers}
 
     # Build the cache structure
-    cache_data = {
-        "date_compiled": datetime.now(UTC).isoformat(),
-        "publications": {},
-    }
+    cache_data = {"date_compiled": datetime.now(UTC).isoformat(), "publications": {}}
 
     for paper in papers:
         cache_data["publications"][paper.bibcode] = this = {

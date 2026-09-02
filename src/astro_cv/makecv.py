@@ -117,8 +117,7 @@ def main(config_dir: Path, output_dir: Path = Path("outputs")):
     doc = document.replace("{%firstname%}", contact_info.personal.firstname)
     doc = doc.replace("{%surname%}", contact_info.personal.surname)
     doc = doc.replace(
-        "{%compiledate%}",
-        datetime.now(UTC).astimezone().strftime("%d %b %Y"),
+        "{%compiledate%}", datetime.now().astimezone().strftime("%d %b %Y")
     )
 
     body = ""

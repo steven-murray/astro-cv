@@ -33,7 +33,7 @@ class Publication:
     @property
     def citations_per_year(self) -> float:
         """Citations per year."""
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         current_year = datetime.now(UTC).year
         years_since_pub = max(1, current_year - self.year)

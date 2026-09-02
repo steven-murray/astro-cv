@@ -173,7 +173,7 @@ def create(pub_list: PublicationList) -> str:
         if i < pub_list.alphabet_n:
             # Not an alphabetical list at the end
             return False
-        # My name is part of the alphabetical list
+        # I'm "important" only if my name is part of the alphabetical list
         return author_number(paper) <= len(paper.authors) - i
 
     def write_subset(papers, label, condition, resume=True):
