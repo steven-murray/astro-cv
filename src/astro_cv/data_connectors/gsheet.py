@@ -112,7 +112,7 @@ class DataConnector:
             worksheet = self.data.worksheet(worksheet_name)
             rows = worksheet.get_all_values()
             return lol_to_lod(rows)
-        except Exception as e:  # noqa: BLE001 - any Sheets/network failure should degrade to empty data, not crash
+        except gspread.exceptions.GSpreadException as e:
             logger.error(f"Error reading worksheet '{worksheet_name}': {e}")
             return []
 
