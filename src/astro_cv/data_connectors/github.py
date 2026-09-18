@@ -181,7 +181,7 @@ class DataConnector:
             """
         )
 
-        one_year_ago = datetime.now(UTC) - timedelta(days=365)
+        one_year_ago = datetime.now(tz=UTC) - timedelta(days=365)
         result = self.graphql_client.execute(
             query,
             variable_values={"org_id": org_id, "from": one_year_ago.isoformat()},

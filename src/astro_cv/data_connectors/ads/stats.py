@@ -89,7 +89,7 @@ def top_cited_papers(
 def average_citations_per_year(pub_list: PubList) -> float:
     """Compute the average citations per year for a given PubList."""
     total_citations = sum(p.citation_count for p in pub_list.publications)
-    current_year = datetime.now(UTC).year
+    current_year = datetime.now(tz=UTC).year
     total_years = sum(max(1, current_year - p.year) for p in pub_list.publications)
     if total_years == 0:
         return 0.0

@@ -8,6 +8,7 @@ from typing import Any
 
 import gspread
 from appdirs import user_config_dir
+from gspread.exceptions import GSpreadException
 
 from astro_cv.sections import academic_experience
 from astro_cv.sections.academic_experience import (
@@ -112,7 +113,7 @@ class DataConnector:
             worksheet = self.data.worksheet(worksheet_name)
             rows = worksheet.get_all_values()
             return lol_to_lod(rows)
-        except gspread.exceptions.GSpreadException as e:
+        except GSpreadException as e:
             logger.error(f"Error reading worksheet '{worksheet_name}': {e}")
             return []
 
