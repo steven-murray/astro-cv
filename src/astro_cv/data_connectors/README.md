@@ -80,7 +80,9 @@ from astro_cv.integrations import GSheetsDataConnector
 from astro_cv.sections.presentations import create_presentations
 
 connector = GSheetsDataConnector()
-presentations = connector.get_presentations(write_posters=False, write_local_talks=False)
+presentations = connector.get_presentations(
+    write_posters=False, write_local_talks=False
+)
 latex_content = create_presentations(presentations)
 ```
 

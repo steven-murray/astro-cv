@@ -116,7 +116,9 @@ def main(config_dir: Path, output_dir: Path = Path("outputs")):
     # Initialize document with name
     doc = document.replace("{%firstname%}", contact_info.personal.firstname)
     doc = doc.replace("{%surname%}", contact_info.personal.surname)
-    doc = doc.replace("{%compiledate%}", datetime.now().strftime("%d %b %Y"))
+    doc = doc.replace(
+        "{%compiledate%}", datetime.now().astimezone().strftime("%d %b %Y")
+    )
 
     body = ""
     publist = ""

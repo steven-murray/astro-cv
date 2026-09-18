@@ -61,7 +61,7 @@ def create(data: Presentation) -> str:
             # Format awards if present
             prize = ""
             if talk.Awards:
-                prize = r"[\textbf{Prize for %s}]" % (talk.Awards.replace(";", " and"))
+                prize = rf"[\textbf{{Prize for {talk.Awards.replace(';', ' and')}}}]"
 
             result += myformat(
                 r"\item ``<% title %>'' at <% Name %>, <% City %>, <% Country %> (<% date %>) <% prize %>",

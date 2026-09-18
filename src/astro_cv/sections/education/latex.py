@@ -38,9 +38,7 @@ def _format_supervisors(supervisors: list[Supervisor]) -> str:
 def _include_degree(config: Education, degree: Degree) -> bool:
     if degree.level == "undergrad" and not config.keep_undergrad:
         return False
-    if degree.level == "secondary" and not config.keep_secondary:
-        return False
-    return True
+    return not (degree.level == "secondary" and not config.keep_secondary)
 
 
 def _include_undergrad_courses(config: Education, degree: Degree) -> bool:

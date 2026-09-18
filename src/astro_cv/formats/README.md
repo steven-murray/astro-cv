@@ -54,6 +54,7 @@ All section `latex.py` modules should import from this shared module:
 ```python
 from astro_cv.formats.latex import myformat
 
+
 def create_my_section(config: MySection) -> str:
     template = r"""
     \section{<% title %>}

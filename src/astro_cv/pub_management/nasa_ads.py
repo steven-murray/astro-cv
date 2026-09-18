@@ -18,7 +18,7 @@ In the end, it will only print out docs in the library itself.
 # TODO: ability to add orcid
 
 import tomllib
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import ads
@@ -82,7 +82,7 @@ def build_query(
     Returns:
         ADS query string
     """
-    now = datetime.now()
+    now = datetime.now(UTC)
     quoted_affiliations = ['"' + aff + '"' for aff in affiliations]
     affiliation_q = " OR ".join(quoted_affiliations)
     year = f"year:{started_year}-{now.year}"
@@ -367,7 +367,7 @@ def write_library_cache(
         properties = {p.bibcode: p.property for p in papers}
 
     # Build the cache structure
-    cache_data = {"date_compiled": datetime.now().isoformat(), "publications": {}}
+    cache_data = {"date_compiled": datetime.now(UTC).isoformat(), "publications": {}}
 
     for paper in papers:
         cache_data["publications"][paper.bibcode] = this = {

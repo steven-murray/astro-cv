@@ -28,6 +28,7 @@ To add a new section:
    import tomllib
    from pathlib import Path
 
+
    @attrs.define
    class SectionName:
        """Configuration for section."""
@@ -38,7 +39,7 @@ To add a new section:
        @classmethod
        def read_toml(cls, path: Path) -> "SectionName":
            """Read configuration from TOML file."""
-           with open(path, 'rb') as f:
+           with open(path, "rb") as f:
                data = tomllib.load(f)
            return cls(**data)
    ```
@@ -47,6 +48,7 @@ To add a new section:
    ```python
    from astro_cv.formats.latex import myformat
    from .datatype import SectionName
+
 
    def create_section_name(config: SectionName) -> str:
        """Generate LaTeX for section."""
@@ -89,7 +91,10 @@ id = "username"
 
 **Usage**:
 ```python
-from astro_cv.sections.contact_information import ContactInformation, create_contact_information
+from astro_cv.sections.contact_information import (
+    ContactInformation,
+    create_contact_information,
+)
 
 config = ContactInformation.read_toml(Path("my-cv-info/contact-information.toml"))
 latex = create_contact_information(config)
@@ -112,7 +117,10 @@ maxref = 4
 
 **Usage**:
 ```python
-from astro_cv.sections.academic_references import AcademicReferences, create_academic_references
+from astro_cv.sections.academic_references import (
+    AcademicReferences,
+    create_academic_references,
+)
 
 config = AcademicReferences.read_toml(Path("my-cv-info/academic-references.toml"))
 latex = create_academic_references(config)
