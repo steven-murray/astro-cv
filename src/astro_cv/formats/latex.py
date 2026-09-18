@@ -42,9 +42,9 @@ def myformat(string, *args, escape_amp=True, **kwargs):
         for i in range(len(args)):
             with contextlib.suppress(AttributeError):
                 args[i] = args[i].replace("&", r"\&")
-        for k in kwargs:
+        for k, v in kwargs.items():
             with contextlib.suppress(AttributeError):
-                kwargs[k] = kwargs[k].replace("&", r"\&")
+                kwargs[k] = v.replace("&", r"\&")
     return custom_format(string, ["<% ", " %>"], *args, **kwargs)
 
 
@@ -81,7 +81,7 @@ def write_section(section_name, data):
     show_title = getattr(section_module, "SECTION_TITLE", True)
     if show_title:
         section_title = section_name.replace("-", " ").title()
-        out = r"\section{%s}%%" % section_title
+        out = rf"\section{{{section_title}}}%"
         out += "\n\t"
         out += "\n\t".join(section_latex.split("\n"))
     else:
@@ -131,14 +131,16 @@ def compile_latex(
             if quiet:
                 # Redirect output to log file
                 with open(log_file, "w" if i == 0 else "a") as logf:
-                    result = subprocess.run(cmd, stdout=logf, stderr=subprocess.STDOUT)
+                    result = subprocess.run(
+                        cmd, stdout=logf, stderr=subprocess.STDOUT, check=False
+                    )
                     exit_code = result.returncode
             else:
-                result = subprocess.run(cmd)
+                result = subprocess.run(cmd, check=False)
                 exit_code = result.returncode
 
         return exit_code
-    except Exception as e:
+    except OSError as e:
         print(f"Error compiling LaTeX: {e}")
         return -1
     finally:
