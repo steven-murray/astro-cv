@@ -7,7 +7,7 @@ from typing import Any
 
 import attrs
 from cache_to_disk import cache_to_disk
-from github import Github
+from github import Github, GithubException
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from rich.progress import Progress
@@ -65,7 +65,7 @@ def _filter_repos(
                     if total_contribs > 0
                     else 0,
                 }
-            except Exception as e:  # noqa: BLE001 - one bad repo shouldn't abort the whole batch
+            except GithubException as e:
                 logger.warning(f"Could not process {repo.name}: {e}")
 
     # Sort by contributions descending
@@ -209,7 +209,7 @@ class DataConnector:
             try:
                 repo = self.gh.get_repo(repo_name)
                 repos.append(repo)
-            except Exception as e:  # noqa: BLE001 - one missing/inaccessible repo shouldn't abort the whole batch
+            except GithubException as e:
                 logger.warning(f"Could not fetch {repo_name}: {e}")
 
         return sorted(repos, key=lambda r: r.stargazers_count, reverse=True)

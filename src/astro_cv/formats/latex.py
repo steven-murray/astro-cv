@@ -140,7 +140,7 @@ def compile_latex(
                 exit_code = result.returncode
 
         return exit_code
-    except Exception as e:  # noqa: BLE001 - any failure invoking the external pdflatex tool should degrade to a -1 exit code, not crash
+    except OSError as e:
         print(f"Error compiling LaTeX: {e}")
         return -1
     finally:

@@ -1,6 +1,7 @@
 """Publications section datatype."""
 
 import tomllib
+from datetime import UTC
 from functools import cached_property
 from pathlib import Path
 from typing import Self
@@ -32,7 +33,7 @@ class Publication:
     @property
     def citations_per_year(self) -> float:
         """Citations per year."""
-        from datetime import UTC, datetime
+        from datetime import datetime
 
         current_year = datetime.now(UTC).year
         years_since_pub = max(1, current_year - self.year)

@@ -1,7 +1,7 @@
 """LaTeX generation for publications section."""
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import ads
 
@@ -9,7 +9,7 @@ from astro_cv.formats.latex import myformat
 
 from .datatype import Publication, PublicationList
 
-now = datetime.now().astimezone()
+now = datetime.now(UTC).astimezone()
 BLANK = "\n\n"
 
 logger = logging.getLogger(__name__)
